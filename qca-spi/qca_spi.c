@@ -1041,6 +1041,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	int intr_gpio = 0;
+	uint32_t signature;
 
 	printk(KERN_INFO "qcaspi: SPI device probe (version %s, irq=%d)\n",
 	       QCASPI_VERSION, spi_device->irq);
@@ -1122,6 +1123,16 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	qca->spi_device = spi_device;
 
 	netif_carrier_off(qca->dev);
+	
+	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+				
+	if (signature != QCASPI_GOOD_SIGNATURE) {
+		printk(KERN_ERR "qcaspi: Invalid signature (0x%04X)\n",
+		       signature);
+		free_netdev(qcaspi_devs);
+		return -EFAULT;
+	}
 
 	if (register_netdev(qcaspi_devs)) {
 		free_netdev(qcaspi_devs);
