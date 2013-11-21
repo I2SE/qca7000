@@ -35,6 +35,7 @@
 
 #include <linux/errno.h>
 #include <linux/etherdevice.h>
+#include <linux/gpio.h>
 #include <linux/if_arp.h>
 #include <linux/if_ether.h>
 #include <linux/init.h>
@@ -44,6 +45,9 @@
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/netdevice.h>
+#include <linux/of.h>
+#include <linux/of_device.h>
+#include <linux/platform_device.h>
 #include <linux/sched.h>
 #include <linux/skbuff.h>
 #include <linux/spi/spi.h>
@@ -63,22 +67,21 @@
  *   constants;
  *--------------------------------------------------------------------*/
 
-#define QCASPI_VERSION "0.1.9"
+#define QCASPI_VERSION "0.1.9-i"
 #define QCASPI_MODNAME "qcaspi"
 #define QCASPI_DEF_MAC_ADDRESS "\x00\xB0\x52\xFF\xFF\x02"
 
 #define MAX_DMA_BURST_LEN 5000
 
-extern int gpio_spi_intr_cfg(void);
-extern int gpio_spi_intr_get_irq(void);
+#define I2C0_SDA__GPIO_3_25	121
 
 /*--------------------------------------------------------------------*
  *   Modules parameters
  *--------------------------------------------------------------------*/
 
-#define QCASPI_CLK_SPEED_MIN 1039062
-#define QCASPI_CLK_SPEED_MAX 16625000
-#define QCASPI_CLK_SPEED 8312500
+#define QCASPI_CLK_SPEED_MIN 1000000
+#define QCASPI_CLK_SPEED_MAX 16000000
+#define QCASPI_CLK_SPEED 8000000
 static int qcaspi_clkspeed = QCASPI_CLK_SPEED;		
 module_param(qcaspi_clkspeed, int, 0);
 MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
@@ -109,7 +112,8 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
  *   variables;
  *--------------------------------------------------------------------*/
 
-static struct spi_board_info qca_spi_board_info __initdata = {
+/* Deprecated, use device tree */
+static struct spi_board_info qca_spi_board_info = {
 	.modalias = QCASPI_MODNAME,
 	.max_speed_hz = 50000000,
 	.bus_num = QCASPI_BUS_ID,
@@ -120,6 +124,15 @@ static struct spi_board_info qca_spi_board_info __initdata = {
 static struct net_device *qcaspi_devs;
 static volatile unsigned int intReq;
 static volatile unsigned int intSvc;
+
+/*
+ * Qualcomm Atheros SPI interrupt configuration functions.
+ */
+
+int gpio_spi_intr_get_irq(void)
+{
+	return gpio_to_irq(I2C0_SDA__GPIO_3_25);
+}
 
 /*====================================================================*
  *
@@ -549,20 +562,18 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 	}
 
 	if (qca->sync == QCASPI_SYNC_UNKNOWN) {
-		if (qca->legacy_mode) {
-			/* use GPIO to reset QCA7000 */
-		} else {
-			/* Read signature, if not valid stay in unknown state */
-			signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
-			if (signature != QCASPI_GOOD_SIGNATURE) {
-				printk(KERN_DEBUG "qcaspi: sync: could not read signature to reset device, retry.\n");
-				return;
-			}
-
-			printk(KERN_DEBUG "qcaspi: sync: resetting device.\n");
-			spi_config = qcaspi_read_register(qca, SPI_REG_SPI_CONFIG);
-			qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config | QCASPI_SLAVE_RESET_BIT);
+		/* Read signature, if not valid stay in unknown state */
+		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		if (signature != QCASPI_GOOD_SIGNATURE) {
+			printk(KERN_DEBUG "qcaspi: sync: could not read signature to reset device, retry.\n");
+			return;
 		}
+
+		/* TODO: use GPIO to reset QCA7000 in legacy mode*/
+		printk(KERN_DEBUG "qcaspi: sync: resetting device.\n");
+		spi_config = qcaspi_read_register(qca, SPI_REG_SPI_CONFIG);
+		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config | QCASPI_SLAVE_RESET_BIT);
+
 		qca->sync = QCASPI_SYNC_RESET;
 		reset_count = 0;
 		return;
@@ -609,7 +620,7 @@ qcaspi_spi_thread(void *data)
 		qcaspi_qca7k_sync(qca, QCASPI_SYNC_UPDATE);
 
 		if (qca->sync != QCASPI_SYNC_READY) {
-			printk(KERN_DEBUG "qcaspi: sync: not ready, turn off carrier and flush\n");
+			printk(KERN_DEBUG "qcaspi: sync: not ready %u, turn off carrier and flush\n", (unsigned int) qca->sync);
 			netif_carrier_off(qca->dev);
 			qcaspi_flush_txq(qca);
 			netif_wake_queue(qca->dev);
@@ -714,16 +725,18 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread, qca, QCASPI_MODNAME);
 
-	if (gpio_spi_intr_cfg() == 0) {
-		if (!request_irq(dev->irq, qcaspi_intr_handler, 0, QCASPI_MODNAME, qca)) {
-			printk(KERN_ERR "qcaspi: Irq request succeed %d\n", dev->irq);
-		} else {
-			printk(KERN_ERR "qcaspi: Fail to request irq %d\n", dev->irq);
-		}
+	dev->irq = gpio_spi_intr_get_irq();
+
+	if (dev->irq < 0)
+		return dev->irq;
+
+	if (!request_irq(dev->irq, qcaspi_intr_handler,
+				  IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca)) {
+		printk(KERN_ERR "qcaspi: Irq request succeed %d\n", dev->irq);
+		
 	} else {
-		printk(KERN_ERR "qcaspi: Fail to reconfigure interrupt signal\n");
-		/* XXX: should return an error here */
-	}
+		printk(KERN_ERR "qcaspi: Fail to request irq %d\n", dev->irq);
+	}	
 
 	return 0;
 }
@@ -891,7 +904,7 @@ qcaspi_netdev_init(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	
-	dev->irq = gpio_spi_intr_get_irq();
+	dev->irq = 0;
 	dev->mtu = QCASPI_MTU;
 	dev->type = ARPHRD_ETHER;
 	qca->clkspeed = qcaspi_clkspeed;
@@ -1019,26 +1032,34 @@ qcaspi_netdev_setup(struct net_device *dev)
 	memset(qca, 0, sizeof(struct qcaspi));
 }
 
-/*====================================================================*
- *   
- * qcaspi_mod_init - Module initialize function.
- *
- * This is the entry point of the kernel module. It is called when the module
- * is loaded. It registers SPI and network devices.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
+static const struct of_device_id qca_spi_of_match[] = {
+	{ .compatible = "qca,qca7000" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, qca_spi_of_match);
 
-static int __init
-qcaspi_mod_init(void) 
+static int qca_spi_probe(struct spi_device *spi_device)
 {
-	struct spi_board_info *spi_board = NULL;
-	struct spi_master *spi_master = NULL;
-	struct spi_device *spi_device = NULL;
 	struct qcaspi *qca = NULL;
 
-	printk(KERN_INFO "qcaspi: version %s\n", QCASPI_VERSION);
+	printk(KERN_INFO "qcaspi: SPI device probe (version %s, irq=%d)\n",
+	       QCASPI_VERSION, spi_device->irq);
+
+	/* TODO: Make module parameter higher prio as device tree */
+	if (spi_device->dev.of_node) {
+		const __be32 *prop;
+		int len;
+
+		prop = of_get_property(spi_device->dev.of_node, "legacy-mode",
+				       &len);
+		if (prop && len >= sizeof(*prop))
+			qcaspi_legacy_mode = be32_to_cpup(prop);
+
+		prop = of_get_property(spi_device->dev.of_node, "burst-length",
+				       &len);
+		if (prop && len >= sizeof(*prop))
+			qcaspi_burst_len = be32_to_cpup(prop);
+	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
 	    (qcaspi_clkspeed > QCASPI_CLK_SPEED_MAX) ||
@@ -1048,93 +1069,67 @@ qcaspi_mod_init(void)
 	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX)) 
 	{
 		printk(KERN_INFO "qcaspi: Invalid parameters "
-		    "(clk=%dHz, legacy_mode=%d, burst_len=%d)\n",
+		    "(clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
 		    qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
 		return -EINVAL;
 	}
+	printk(KERN_INFO "qcaspi: Get parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
+	       qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
 
-	spi_master = spi_busnum_to_master(QCASPI_BUS_ID);
-	if (!spi_master) {
-		kfree(spi_board);
-		printk(KERN_ERR "qcaspi: Unable to locate SPI master device on bus %d\n", QCASPI_BUS_ID);
-		return -ENOMEM;
-	}
-	printk(KERN_INFO "qcaspi: SPI bus master retrieve from bus number %d\n", QCASPI_BUS_ID);
-
-	spi_device = spi_new_device(spi_master, &qca_spi_board_info);
-	if (!spi_device) {
-		printk(KERN_ERR "qcaspi: Unable to create new SPI device on bus %d\n", QCASPI_BUS_ID);
-		return -ENODEV;
-	}
-
+	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
 	if (spi_setup(spi_device) < 0) {
-		kfree(spi_device);
-		printk(KERN_ERR "qcaspi: Unable to setup SPI bus %d\n", QCASPI_BUS_ID);
+		printk(KERN_ERR "qcaspi: Unable to setup SPI device\n");
 		return -EFAULT;
 	}
-	printk(KERN_INFO "qcaspi: SPI device create (clk=%dHz, "
-	    "legacy_mode=%d, burst_len=%d)\n",
-	    qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
-
+	
 	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d", qcaspi_netdev_setup);
 	if (!qcaspi_devs) {
-		kfree(spi_device);
 		printk(KERN_ERR "qcaspi: Unable to allocate memory for spi network device\n");
 		return -ENOMEM;
 	}
 	qca = netdev_priv(qcaspi_devs);
 	if (!qca) {
 		free_netdev(qcaspi_devs);
-		kfree(spi_device);
 		printk(KERN_ERR "qcaspi: Fail to retrieve private structure from net device\n");
 		return -ENOMEM;
 	}
 	qca->dev = qcaspi_devs;
-	qca->spi_board = &qca_spi_board_info;
-	qca->spi_master = spi_master;
+	qca->spi_board = NULL;
+	qca->spi_master = NULL;
 	qca->spi_device = spi_device;
 
 	netif_carrier_off(qca->dev);
 
 	if (register_netdev(qcaspi_devs)) {
-		kfree(spi_device);
-		printk(KERN_ERR "qcaspi: Unable to register network device %s\n", qcaspi_devs->name);
 		free_netdev(qcaspi_devs);
+		printk(KERN_ERR "qcaspi: Unable to register network device %s\n",
+		       qcaspi_devs->name);
 		return -EFAULT;
 	}
-	printk(KERN_ERR "qcaspi: Driver loaded (%s)\n", qcaspi_devs->name);
 
 	return 0;
 }
 
-/*====================================================================*
- *   
- * qcaspi_mod_exit - Exit function of the module.
- *
- * The function is called when the module is unloaded. It unregister network
- * SPI devices.
- *
- * Return:   N/A
- *   
- *--------------------------------------------------------------------*/
-
-static void __exit
-qcaspi_mod_exit(void) 
+static int qca_spi_remove(struct spi_device *spi_device)
 {
-	struct qcaspi *qca = netdev_priv(qcaspi_devs);
+	netdev_priv(qcaspi_devs);
 	unregister_netdev(qcaspi_devs);
-	printk(KERN_ERR "qcaspi: Driver unloaded (%s)\n", qcaspi_devs->name);
-	spi_unregister_device(qca->spi_device);
 	free_netdev(qcaspi_devs);
+
+	return 0;
 }
 
-/*====================================================================*
- *   
- *--------------------------------------------------------------------*/
-
-module_init(qcaspi_mod_init);
-module_exit(qcaspi_mod_exit);
+static struct spi_driver qca_spi_driver = {
+	.driver	= {
+		.name	= QCASPI_MODNAME,
+		.owner	= THIS_MODULE,
+		.of_match_table = qca_spi_of_match,
+	},
+	.probe  = qca_spi_probe,
+	.remove = qca_spi_remove,
+};
+module_spi_driver(qca_spi_driver);
 
 /*====================================================================*
  *
