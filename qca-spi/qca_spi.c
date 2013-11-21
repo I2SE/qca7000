@@ -374,14 +374,14 @@ qcaspi_transmit(struct qcaspi *qca)
 		available -= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
 
 		/* remove the skb from the queue */
-		netif_tx_lock(qca->dev);
+		netif_tx_lock_bh(qca->dev);
 		dev_kfree_skb(qca->txq.skb[qca->txq.head]);
 		qca->txq.skb[qca->txq.head] = NULL;
 		++qca->txq.head;
 		if (qca->txq.head >= TX_QUEUE_LEN)
 			qca->txq.head = 0;
 		netif_wake_queue(qca->dev);
-		netif_tx_unlock(qca->dev);
+		netif_tx_unlock_bh(qca->dev);
 	}
 
 	return 0;
@@ -499,7 +499,7 @@ qcaspi_flush_txq(struct qcaspi *qca)
 {
 	int i;
 
-	netif_tx_lock(qca->dev);
+	netif_tx_lock_bh(qca->dev);
 	for (i = 0; i < TX_QUEUE_LEN; ++i) {
 		if (qca->txq.skb[i])
 			dev_kfree_skb(qca->txq.skb[i]);
@@ -507,7 +507,7 @@ qcaspi_flush_txq(struct qcaspi *qca)
 		qca->txq.tail = 0;
 		qca->txq.head = 0;
 	}
-	netif_tx_unlock(qca->dev);
+	netif_tx_unlock_bh(qca->dev);
 }
 
 /*====================================================================*
@@ -732,11 +732,8 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (dev->irq < 0)
 		return dev->irq;
 
-	if (!request_irq(dev->irq, qcaspi_intr_handler,
+	if (request_irq(dev->irq, qcaspi_intr_handler,
 				  IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca)) {
-		printk(KERN_ERR "qcaspi: Irq request succeed %d\n", dev->irq);
-		
-	} else {
 		printk(KERN_ERR "qcaspi: Fail to request irq %d\n", dev->irq);
 	}	
 
@@ -912,7 +909,7 @@ qcaspi_netdev_init(struct net_device *dev)
 	qca->clkspeed = qcaspi_clkspeed;
 	qca->legacy_mode = qcaspi_legacy_mode;
 	qca->burst_len = qcaspi_burst_len;
-
+	qca->spi_thread = NULL;
 	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN + QCAFRM_FOOTER_LEN + 4) * 4;
 
 	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_ATOMIC);
