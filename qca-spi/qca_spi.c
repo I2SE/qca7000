@@ -1161,14 +1161,21 @@ static int qca_spi_remove(struct spi_device *spi_device)
 	return 0;
 }
 
+static const struct spi_device_id qca_spi_id[] = {
+	{ "qca7000", 0 },
+	{ },
+};
+MODULE_DEVICE_TABLE(spi, qca_spi_id);
+
 static struct spi_driver qca_spi_driver = {
 	.driver	= {
 		.name	= QCASPI_MODNAME,
 		.owner	= THIS_MODULE,
 		.of_match_table = qca_spi_of_match,
 	},
-	.probe  = qca_spi_probe,
-	.remove = qca_spi_remove,
+	.id_table = qca_spi_id,
+	.probe    = qca_spi_probe,
+	.remove   = qca_spi_remove,
 };
 module_spi_driver(qca_spi_driver);
 
