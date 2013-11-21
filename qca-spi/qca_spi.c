@@ -1135,9 +1135,9 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	}
 
 	if (register_netdev(qcaspi_devs)) {
-		free_netdev(qcaspi_devs);
 		printk(KERN_ERR "qcaspi: Unable to register network device %s\n",
 		       qcaspi_devs->name);
+		free_netdev(qcaspi_devs);
 		return -EFAULT;
 	}
 
