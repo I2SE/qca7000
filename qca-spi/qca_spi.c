@@ -47,6 +47,7 @@
 #include <linux/netdevice.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/of_gpio.h>
 #include <linux/platform_device.h>
 #include <linux/sched.h>
 #include <linux/skbuff.h>
@@ -72,8 +73,6 @@
 #define QCASPI_DEF_MAC_ADDRESS "\x00\xB0\x52\xFF\xFF\x02"
 
 #define MAX_DMA_BURST_LEN 5000
-
-#define I2C0_SDA__GPIO_3_25	121
 
 /*--------------------------------------------------------------------*
  *   Modules parameters
@@ -112,9 +111,17 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
  *   variables;
  *--------------------------------------------------------------------*/
 
-/* Deprecated, use device tree */
+struct spi_platform_data {
+	int intr_gpio;
+};
+
+static struct spi_platform_data qca_spi_platform_data = {
+	.intr_gpio = 0
+};
+
 static struct spi_board_info qca_spi_board_info = {
 	.modalias = QCASPI_MODNAME,
+	.platform_data = &qca_spi_platform_data,
 	.max_speed_hz = 50000000,
 	.bus_num = QCASPI_BUS_ID,
 	.chip_select = QCASPI_CS_ID,
@@ -124,15 +131,6 @@ static struct spi_board_info qca_spi_board_info = {
 static struct net_device *qcaspi_devs;
 static volatile unsigned int intReq;
 static volatile unsigned int intSvc;
-
-/*
- * Qualcomm Atheros SPI interrupt configuration functions.
- */
-
-int gpio_spi_intr_get_irq(void)
-{
-	return gpio_to_irq(I2C0_SDA__GPIO_3_25);
-}
 
 /*====================================================================*
  *
@@ -714,6 +712,7 @@ int
 qcaspi_netdev_open(struct net_device *dev) 
 {
 	struct qcaspi *qca = netdev_priv(dev);
+	struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
 	intReq = 0;
@@ -725,7 +724,10 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread, qca, QCASPI_MODNAME);
 
-	dev->irq = gpio_spi_intr_get_irq();
+	if (pd == NULL)
+		return -1;
+	
+	dev->irq = gpio_to_irq(pd->intr_gpio);
 
 	if (dev->irq < 0)
 		return dev->irq;
@@ -1041,6 +1043,7 @@ MODULE_DEVICE_TABLE(of, qca_spi_of_match);
 static int qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
+	int intr_gpio = 0;
 
 	printk(KERN_INFO "qcaspi: SPI device probe (version %s, irq=%d)\n",
 	       QCASPI_VERSION, spi_device->irq);
@@ -1049,6 +1052,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	if (spi_device->dev.of_node) {
 		const __be32 *prop;
 		int len;
+		int ret;
 
 		prop = of_get_property(spi_device->dev.of_node, "legacy-mode",
 				       &len);
@@ -1059,7 +1063,28 @@ static int qca_spi_probe(struct spi_device *spi_device)
 				       &len);
 		if (prop && len >= sizeof(*prop))
 			qcaspi_burst_len = be32_to_cpup(prop);
+		
+		intr_gpio = of_get_named_gpio(spi_device->dev.of_node, 
+					      "intr-gpios", 0);
+
+		if (gpio_is_valid(intr_gpio)) {
+			ret = gpio_request_one(intr_gpio, GPIOF_IN, 
+					       "qca7k_intr0");
+
+			if (ret < 0) {
+				dev_err(&spi_device->dev, 
+			 	"Failed to request interrupt gpio: %d!\n",
+				ret);
+			}
+		}
 	}
+
+	if (intr_gpio == 0) {
+		dev_err(&spi_device->dev, "Missing interrupt gpio\n");
+		return -EINVAL;
+	}
+
+	qca_spi_platform_data.intr_gpio = intr_gpio;
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
 	    (qcaspi_clkspeed > QCASPI_CLK_SPEED_MAX) ||
@@ -1095,7 +1120,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 		return -ENOMEM;
 	}
 	qca->dev = qcaspi_devs;
-	qca->spi_board = NULL;
+	qca->spi_board = &qca_spi_board_info;
 	qca->spi_master = NULL;
 	qca->spi_device = spi_device;
 
@@ -1113,7 +1138,15 @@ static int qca_spi_probe(struct spi_device *spi_device)
 
 static int qca_spi_remove(struct spi_device *spi_device)
 {
-	netdev_priv(qcaspi_devs);
+	struct qcaspi *qca = netdev_priv(qcaspi_devs);
+
+	if (qca && qca->spi_board)
+	{
+		struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
+		if (pd)
+			gpio_free(pd->intr_gpio);
+	}
+
 	unregister_netdev(qcaspi_devs);
 	free_netdev(qcaspi_devs);
 
