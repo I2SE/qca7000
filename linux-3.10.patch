@@ -1,0 +1,40 @@
+From: Stefan Wahren <stefan.wahren@i2se.com>
+Subject: ethernet: qcaspi: Add config and build options
+
+Add config and build options for the QCA7000 SPI protocol driver.
+
+Signed-off-by: Stefan Wahren <stefan.wahren@i2se.com>
+---
+diff --git a/drivers/net/ethernet/Kconfig b/drivers/net/ethernet/Kconfig
+index ed956e0..19780c8 100644
+--- a/drivers/net/ethernet/Kconfig
++++ b/drivers/net/ethernet/Kconfig
+@@ -135,6 +135,15 @@ config ETHOC
+ source "drivers/net/ethernet/packetengines/Kconfig"
+ source "drivers/net/ethernet/pasemi/Kconfig"
+ source "drivers/net/ethernet/qlogic/Kconfig"
++
++config QCA7000
++	tristate "Qualcomm Atheros QCA7000 support"
++	---help---
++	  This SPI protocol driver supports the Qualcomm Atheros QCA7000.
++
++	  To compile this driver as a module, choose M here. The module
++	  will be called qcaspi.
++
+ source "drivers/net/ethernet/realtek/Kconfig"
+ source "drivers/net/ethernet/renesas/Kconfig"
+ source "drivers/net/ethernet/rdc/Kconfig"
+diff --git a/drivers/net/ethernet/Makefile b/drivers/net/ethernet/Makefile
+index 8268d85..2e0f67f 100644
+--- a/drivers/net/ethernet/Makefile
++++ b/drivers/net/ethernet/Makefile
+@@ -52,6 +52,8 @@ obj-$(CONFIG_NET_VENDOR_OKI) += oki-semi/
+ obj-$(CONFIG_ETHOC) += ethoc.o
+ obj-$(CONFIG_NET_PACKET_ENGINE) += packetengines/
+ obj-$(CONFIG_NET_VENDOR_PASEMI) += pasemi/
++obj-$(CONFIG_QCA7000) += qcaspi.o
++qcaspi-objs := qca_spi.o qca_framing.o qca_7k.o qca_debug.o
+ obj-$(CONFIG_NET_VENDOR_QLOGIC) += qlogic/
+ obj-$(CONFIG_NET_VENDOR_REALTEK) += realtek/
+ obj-$(CONFIG_SH_ETH) += renesas/
