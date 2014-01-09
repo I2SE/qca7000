@@ -29,10 +29,6 @@
  *				
  *--------------------------------------------------------------------*/
 
-/*====================================================================*
- *   system header files;
- *--------------------------------------------------------------------*/
-
 #include <linux/errno.h>
 #include <linux/etherdevice.h>
 #include <linux/gpio.h>
@@ -55,18 +51,10 @@
 #include <linux/types.h>
 #include <linux/version.h>
 
-/*====================================================================*
- *   custom header files;
- *--------------------------------------------------------------------*/
-
 #include "qca_spi.h"
 #include "qca_framing.h"
 #include "qca_7k.h"
 #include "qca_debug.h"
-
-/*====================================================================*
- *   constants;
- *--------------------------------------------------------------------*/
 
 #define QCASPI_VERSION "0.1.9-i"
 #define QCASPI_MODNAME "qcaspi"
@@ -107,10 +95,6 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
-/*====================================================================*
- *   variables;
- *--------------------------------------------------------------------*/
-
 struct spi_platform_data {
 	int intr_gpio;
 };
@@ -132,13 +116,6 @@ static struct net_device *qcaspi_devs;
 static volatile unsigned int intReq;
 static volatile unsigned int intSvc;
 
-/*====================================================================*
- *
- * Disables all SPI interrupts and returns the old value of the
- * interrupt enable register.
- *
- *--------------------------------------------------------------------*/
-
 uint32_t
 disable_spi_interrupts(struct qcaspi *qca)
 {
@@ -147,14 +124,6 @@ disable_spi_interrupts(struct qcaspi *qca)
 	return old_intr_enable;
 }
 
-/*====================================================================*
- *
- * Enables only the SPI interrupts passed in the intr argument.
- * All others are disabled.
- * Returns the old value of the interrupt enable register.
- *
- *--------------------------------------------------------------------*/
-
 uint32_t
 enable_spi_interrupts(struct qcaspi *qca, uint32_t intr_enable)
 {
@@ -162,16 +131,6 @@ enable_spi_interrupts(struct qcaspi *qca, uint32_t intr_enable)
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
 	return old_intr_enable;
 }
-
-/*====================================================================*
- *
- * Transmits a write command and len bytes of data
- * from src buffer in a single burst.
- *
- * Returns 0 if not all data could be transmitted,
- * and len if all data was transmitted.
- *
- *--------------------------------------------------------------------*/
 
 uint32_t
 qcaspi_write_burst(struct qcaspi *qca, uint8_t *src, uint32_t len)
@@ -200,16 +159,6 @@ qcaspi_write_burst(struct qcaspi *qca, uint8_t *src, uint32_t len)
 	return len;
 }
 
-/*====================================================================*
- *
- * Transmits len bytes of data from src buffer in
- * a single burst.
- *
- * Returns 0 if not all data could be transmitted,
- * and len if all data was transmitted.
- *
- *--------------------------------------------------------------------*/
-
 uint32_t
 qcaspi_write_legacy(struct qcaspi *qca, uint8_t *src, uint32_t len)
 {
@@ -231,17 +180,6 @@ qcaspi_write_legacy(struct qcaspi *qca, uint8_t *src, uint32_t len)
 
 	return len;
 }
-
-/*====================================================================*
- *
- * Sends a read command and then receives len
- * bytes of data from the external SPI slave into
- * the buffer at dst.
- *
- * Returns 0 if not all data could be received,
- * and len if all data was received.
- *
- *--------------------------------------------------------------------*/
 
 uint32_t
 qcaspi_read_burst(struct qcaspi *qca, uint8_t *dst, uint32_t len)
@@ -270,16 +208,6 @@ qcaspi_read_burst(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 	return len;
 }
 
-/*====================================================================*
- *
- * Receives len bytes of data from the external
- * SPI slave into the buffer at dst.
- *
- * Returns 0 if not all data could be received,
- * and len if all data was received.
- *
- *--------------------------------------------------------------------*/
- 
 uint32_t
 qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 {
@@ -303,14 +231,6 @@ qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 
 	return len;
 }
-
-/*====================================================================*
- *
- * Transmits an sk_buff in legacy or burst mode.
- *
- * Returns -1 on failure, 0 on success.
- *
- *--------------------------------------------------------------------*/
 
 int
 qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
@@ -349,15 +269,6 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 	return 0;
 }
 
-/*====================================================================*
- *
- * Transmits as many sk_buff's that will fit in
- * the SPI slave write buffer.
- *
- * Returns -1 on failure, 0 on success.
- *
- *--------------------------------------------------------------------*/
-
 int
 qcaspi_transmit(struct qcaspi *qca)
 {
@@ -387,15 +298,6 @@ qcaspi_transmit(struct qcaspi *qca)
 	return 0;
 }
 
-/*====================================================================*
- *
- * Read the number of bytes available in the SPI slave and
- * then read and process the data from the slave.
- *
- * Returns -1 on error, 0 on success.
- *
- *--------------------------------------------------------------------*/
- 
 int
 qcaspi_receive(struct qcaspi *qca)
 {
@@ -510,12 +412,6 @@ qcaspi_flush_txq(struct qcaspi *qca)
 	netif_tx_unlock_bh(qca->dev);
 }
 
-/*====================================================================*
- *
- * Manage synchronization with the external SPI slave.
- *
- *--------------------------------------------------------------------*/
- 
 void
 qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 {
@@ -587,16 +483,6 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		}
 	}
 }
-
-/*====================================================================*
- *   
- * qcaspi_spi_thread - SPI worker thread.
- *
- * Handle interrupts and transmit requests on the SPI interface.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 static int
 qcaspi_spi_thread(void *data) 
@@ -677,16 +563,6 @@ qcaspi_spi_thread(void *data)
 	return 0;
 }
 
-/*====================================================================*
- *   
- * qcaspi_intr_handler -  Interrupt handler.
- *
- * The actual interrupt handler coming from the SPI device.
- *
- * Return:   see linux interrupt handler for more details.
- *   
- *--------------------------------------------------------------------*/
-
 static irqreturn_t
 qcaspi_intr_handler(int irq, void *data) 
 {
@@ -697,16 +573,6 @@ qcaspi_intr_handler(int irq, void *data)
 	}
 	return IRQ_HANDLED;
 }
-
-/*====================================================================*
- *   
- * qcaspi_netdev_open - open network adapter.
- *
- * This function is use by the network stack to open the network device.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 int
 qcaspi_netdev_open(struct net_device *dev) 
@@ -740,16 +606,6 @@ qcaspi_netdev_open(struct net_device *dev)
 	return 0;
 }
 
-/*====================================================================*
- *   
- * qcaspi_netdev_close - Close network device.
- *
- * This function is use by the network stack to close the network device.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
-
 int
 qcaspi_netdev_close(struct net_device *dev) 
 {
@@ -767,16 +623,6 @@ qcaspi_netdev_close(struct net_device *dev)
 
 	return 0;
 }
-
-/*====================================================================*
- *   
- * qcaspi_netdev_xmit - Transmit a packet (called by the kernel).
- *
- * This function is called by the network stack to send an Ethernet frame.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 netdev_tx_t
 qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev) 
@@ -847,17 +693,6 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-
-/*====================================================================*
- *   
- * qcaspi_netdev_tx_timeout - Transmit timeout function.
- *
- * This function deals with a transmit timeout.
- *
- * Return:   N/A
- *   
- *--------------------------------------------------------------------*/
-
 void
 qcaspi_netdev_tx_timeout(struct net_device *dev) 
 {
@@ -870,33 +705,12 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 	}
 }
 
-
-/*====================================================================*
- *   
- * qcaspi_netdev_get_stats - Return statistics to the caller.
- *
- * This function returns the device statistics to the caller.
- *
- * Return:   Device statistics
- *   
- *--------------------------------------------------------------------*/
-
 struct net_device_stats *
 qcaspi_netdev_get_stats(struct net_device *dev) 
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	return &qca->stats;
 }
-
-/*====================================================================*
- *   
- * qcaspi_netdev_init - Netdevice register callback.
- *
- * This is the callback function for the Netdevice register function.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 static int
 qcaspi_netdev_init(struct net_device *dev) 
@@ -926,16 +740,6 @@ qcaspi_netdev_init(struct net_device *dev)
 	return 0;
 }
 
-/*====================================================================*
- *   
- * qcaspi_netdev_uninit - Uninitialize the network adapter.
- *
- * This function is call to un-initialize the network adapter.
- *
- * Return:   N/A
- *   
- *--------------------------------------------------------------------*/
-
 static void
 qcaspi_netdev_uninit(struct net_device *dev) 
 {
@@ -945,16 +749,6 @@ qcaspi_netdev_uninit(struct net_device *dev)
 	if (qca->rx_skb)
 		dev_kfree_skb(qca->rx_skb);
 }
-
-/*====================================================================*
- *   
- * qcaspi_netdev_change_mtu - change MTU value.
- *
- * This function changes the MTU value.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 int
 qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu) 
@@ -967,17 +761,6 @@ qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 
 	return 0;
 }
-
-/*====================================================================*
- *   
- * qcaspi_netdev_set_mac_address - set the MAC address.
- *
- * This function is use to change the MAC address of the network adapter. The
- * newly MAC address is not persistent.
- *
- * Return:   0 on success, else failure
- *   
- *--------------------------------------------------------------------*/
 
 static int
 qcaspi_netdev_set_mac_address(struct net_device *dev, void *p) 
@@ -1002,15 +785,6 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_set_mac_address = qcaspi_netdev_set_mac_address,
 	.ndo_tx_timeout = qcaspi_netdev_tx_timeout,
 };
-
-/*====================================================================*
- *   
- * qcaspi_netdev_setup - init function.
- *
- * The init function (sometimes called probe). It is invoked by
- * alloc_netdev().
- *
- *--------------------------------------------------------------------*/
 
 void
 qcaspi_netdev_setup(struct net_device *dev) 
@@ -1178,10 +952,6 @@ static struct spi_driver qca_spi_driver = {
 	.remove   = qca_spi_remove,
 };
 module_spi_driver(qca_spi_driver);
-
-/*====================================================================*
- *
- *--------------------------------------------------------------------*/
 
 MODULE_DESCRIPTION("Qualcomm Atheros SPI Driver");
 MODULE_AUTHOR("Qualcomm Atheros Communications");

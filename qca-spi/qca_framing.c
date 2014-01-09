@@ -32,16 +32,6 @@
 
 #include "qca_framing.h"
 
-/*====================================================================*
- *   
- *   QcaFrmCreateHeader
- *
- *   Fills a provided buffer with the Atheros frame header.
- *
- *   Return: The number of bytes written in header.
- *   
- *--------------------------------------------------------------------*/
-
 int32_t
 QcaFrmCreateHeader(uint8_t *buf, uint16_t len) 
 {
@@ -59,16 +49,6 @@ QcaFrmCreateHeader(uint8_t *buf, uint16_t len)
 	return QCAFRM_HEADER_LEN;
 }
 
-/*====================================================================*
- *   
- *   QcaFrmCreateFooter
- *
- *   Fills a provided buffer with the Atheros frame footer.
- *
- * Return:   The number of bytes written in footer.
- *   
- *--------------------------------------------------------------------*/
-
 int32_t
 QcaFrmCreateFooter(uint8_t *buf) 
 {
@@ -76,15 +56,6 @@ QcaFrmCreateFooter(uint8_t *buf)
 	buf[1] = 0x55;
 	return QCAFRM_FOOTER_LEN;
 }
-
-
-/*====================================================================*
- *   
- *   QcaFrmFsmInit
- *
- *   Initialize the framing handle. To be called at initialization for new QcaFrmHdl allocated.
- *
- *--------------------------------------------------------------------*/
 
 void
 QcaFrmFsmInit(QcaFrmHdl *frmHdl) 
@@ -213,6 +184,3 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 	return ret;
 }
 
-/*====================================================================*
- *
- *--------------------------------------------------------------------*/

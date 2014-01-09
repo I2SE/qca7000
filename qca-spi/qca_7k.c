@@ -27,29 +27,13 @@
  *   
  *--------------------------------------------------------------------*/
 
-/*====================================================================*
- *   system header files;
- *--------------------------------------------------------------------*/
-
 #include <linux/version.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/moduleparam.h>
 #include <linux/spi/spi.h>
 
-/*====================================================================*
- *   custom header files;
- *--------------------------------------------------------------------*/
-
 #include "qca_7k.h"
-
-/*====================================================================*
- *
- *   uint16_t qcaspi_read_register(struct qcaspi *qca, uint16_t reg);
- *
- *   Read the specified register from the QCA7K
- *
- *--------------------------------------------------------------------*/
 
 uint16_t
 qcaspi_read_register(struct qcaspi *qca, uint16_t reg)
@@ -85,14 +69,6 @@ qcaspi_read_register(struct qcaspi *qca, uint16_t reg)
 	return __be16_to_cpu(rx_data);
 }
 
-/*====================================================================*
- *    
- *   void qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value);
- *
- *   Write a 16 bit value to the specified SPI register
- *
- *--------------------------------------------------------------------*/
-
 void
 qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value)
 {
@@ -125,14 +101,6 @@ qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value)
 	}
 }
 
-/*====================================================================*
- *    
- *   void qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd);
- *
- *   Transmits a 16 bit command.
- *
- *--------------------------------------------------------------------*/
-
 int
 qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd)
 {
@@ -157,6 +125,3 @@ qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd)
 	return 0;
 }
 
-/*====================================================================*
- *
- *--------------------------------------------------------------------*/

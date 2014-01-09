@@ -31,17 +31,9 @@
 #ifndef _QCAFRAMING_H
 #define _QCAFRAMING_H
 
-/*====================================================================*
- *   system header files;
- *--------------------------------------------------------------------*/
-
 #include <linux/types.h>
 #include <linux/if_ether.h>
 #include <linux/if_vlan.h>
-
-/*====================================================================*
- *   constants
- *--------------------------------------------------------------------*/
 
 /* Frame is currently being received */
 #define QCAFRM_GATHER 0
@@ -74,14 +66,6 @@
 
 /* QCA7K Framing. */
 #define QCAFRM_ERR_BASE -1000
-
-/*====================================================================*
- *   
- *   QcaFrmState
- *
- *   Various states during frame decoding.
- *
- *--------------------------------------------------------------------*/
 
 typedef enum {
 	QCAFRM_HW_LEN0 = 0x8000,
@@ -136,39 +120,9 @@ typedef struct {
 	uint16_t len;
 } QcaFrmHdl;
 
-/*====================================================================*
- *   
- *   QcaFrmCreateHeader
- *
- *   Fills a provided buffer with the QCA7K frame header.
- *
- *   Return: The number of bytes written in header.
- *   
- *--------------------------------------------------------------------*/
-
 int32_t QcaFrmCreateHeader(uint8_t *buf, uint16_t len);
 
-/*====================================================================*
- *   
- *   QcaFrmCreateFooter
- *
- *   Fills a provided buffer with the QCA7K frame footer.
- *
- *   Return: The number of bytes written in footer.
- *   
- *--------------------------------------------------------------------*/
-
 int32_t QcaFrmCreateFooter(uint8_t *buf);
-
-/*====================================================================*
- *   
- *   QcaFrmFsmInit
- *
- *   Initialize the framing handle. To be called at initialization for new
- *   QcaFrmHdl allocated.
- *
- *   
- *--------------------------------------------------------------------*/
 
 void QcaFrmFsmInit(QcaFrmHdl *frmHdl);
 
