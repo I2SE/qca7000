@@ -19,8 +19,6 @@
  *--------------------------------------------------------------------*/
 
 /*====================================================================*
- *   
- *   qca_framing.c
  *
  *   Atheros ethernet framing. Every Ethernet frame is surrounded 
  *   by an atheros frame while transmitted over a serial channel;

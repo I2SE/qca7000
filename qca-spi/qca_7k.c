@@ -20,8 +20,6 @@
 
 /*====================================================================*
  *
- *   qca_7k.c	-
- *
  *   This module implements the Qualcomm Atheros SPI protocol for
  *   kernel-based SPI device.
  *   

@@ -20,8 +20,6 @@
 
 /*====================================================================*
  *   
- *   qca_ar7k.h
- *
  *   Qualcomm Atheros SPI register definition.
  *
  *   This module is designed to define the Qualcomm Atheros SPI register 

@@ -20,8 +20,6 @@
  *--------------------------------------------------------------------*/
 
 /*====================================================================*
- * 
- *   qca_spi.c
  *
  *   This module implements the Qualcomm Atheros SPI protocol for
  *   kernel-based SPI device; it is essentially an Ethernet-to-SPI
