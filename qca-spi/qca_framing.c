@@ -1,26 +1,26 @@
 /*====================================================================*
- *   
+ *
  *   Copyright (c) 2011, 2012, Atheros Communications Inc.
- *   
- *   Permission to use, copy, modify, and/or distribute this software 
- *   for any purpose with or without fee is hereby granted, provided 
- *   that the above copyright notice and this permission notice appear 
+ *
+ *   Permission to use, copy, modify, and/or distribute this software
+ *   for any purpose with or without fee is hereby granted, provided
+ *   that the above copyright notice and this permission notice appear
  *   in all copies.
- *   
- *   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL 
- *   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED 
- *   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL  
- *   THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR 
- *   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM 
- *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
- *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ *   THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ *   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *   
+ *
  *--------------------------------------------------------------------*/
 
 /*====================================================================*
  *
- *   Atheros ethernet framing. Every Ethernet frame is surrounded 
+ *   Atheros ethernet framing. Every Ethernet frame is surrounded
  *   by an atheros frame while transmitted over a serial channel;
  *
  *--------------------------------------------------------------------*/
@@ -31,7 +31,7 @@
 #include "qca_framing.h"
 
 int32_t
-QcaFrmCreateHeader(uint8_t *buf, uint16_t len) 
+QcaFrmCreateHeader(uint8_t *buf, uint16_t len)
 {
 	len = __cpu_to_le16(len);
 
@@ -48,7 +48,7 @@ QcaFrmCreateHeader(uint8_t *buf, uint16_t len)
 }
 
 int32_t
-QcaFrmCreateFooter(uint8_t *buf) 
+QcaFrmCreateFooter(uint8_t *buf)
 {
 	buf[0] = 0x55;
 	buf[1] = 0x55;
@@ -56,13 +56,13 @@ QcaFrmCreateFooter(uint8_t *buf)
 }
 
 void
-QcaFrmFsmInit(QcaFrmHdl *frmHdl) 
+QcaFrmFsmInit(QcaFrmHdl *frmHdl)
 {
 	frmHdl->state = QCAFRM_HW_LEN0;
 }
 
 /*====================================================================*
- *   
+ *
  *   QcaFrmFsmDecode
  *
  *   Gather received bytes and try to extract a full ethernet frame by following a simple state machine.
@@ -72,15 +72,15 @@ QcaFrmFsmInit(QcaFrmHdl *frmHdl)
  *           QCAFRM_INVLEN       Atheros frame length is invalid
  *           QCAFRM_NOTAIL       Footer expected but not found.
  *           > 0                 Number of byte in the fully received Ethernet frame
- *   
+ *
  *--------------------------------------------------------------------*/
 
 int32_t
-QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvByte) 
+QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvByte)
 {
 	int32_t ret = QCAFRM_GATHER;
 	uint16_t len;
-	switch(frmHdl->state) 
+	switch(frmHdl->state)
 	{
 	case QCAFRM_HW_LEN0:
 	case QCAFRM_HW_LEN1:
@@ -103,12 +103,12 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 	case QCAFRM_WAIT_AA2:
 	case QCAFRM_WAIT_AA3:
 	case QCAFRM_WAIT_AA4:
-		if (recvByte != 0xAA) 
+		if (recvByte != 0xAA)
 		{
 			ret = QCAFRM_NOHEAD;
 			frmHdl->state = QCAFRM_HW_LEN0;
 		}
-		else 
+		else
 		{
 			frmHdl->state--;
 		}
@@ -116,7 +116,7 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 
 		/* 2 bytes length. */
 		/* Borrow offset field to hold length for now. */
- 	case QCAFRM_WAIT_LEN_BYTE0:
+	case QCAFRM_WAIT_LEN_BYTE0:
 		frmHdl->offset = recvByte;
 		frmHdl->state--;
 		break;
@@ -138,7 +138,7 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			ret = QCAFRM_INVLEN;
 			frmHdl->state = QCAFRM_HW_LEN0;
 		}
-		else 
+		else
 		{
 			frmHdl->state = (QcaFrmState)(len + 1);
 			/* Remaining number of bytes. */
@@ -153,24 +153,24 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 		break;
 
 	case QCAFRM_WAIT_551:
-		if (recvByte != 0x55) 
+		if (recvByte != 0x55)
 		{
 			ret = QCAFRM_NOTAIL;
 			frmHdl->state = QCAFRM_HW_LEN0;
 		}
-		else 
+		else
 		{
 			frmHdl->state--;
 		}
 		break;
 
 	case QCAFRM_WAIT_552:
-		if (recvByte != 0x55) 
+		if (recvByte != 0x55)
 		{
 			ret = QCAFRM_NOTAIL;
 			frmHdl->state = QCAFRM_HW_LEN0;
 		}
-		else 
+		else
 		{
 			ret = frmHdl->offset;
 			/* Frame is fully received. */

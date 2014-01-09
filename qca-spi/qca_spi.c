@@ -1,22 +1,22 @@
 /*====================================================================*
- *   
+ *
  *
  *   Copyright (c) 2011, 2012, Qualcomm Atheros Communications Inc.
- *   
- *   Permission to use, copy, modify, and/or distribute this software 
- *   for any purpose with or without fee is hereby granted, provided 
- *   that the above copyright notice and this permission notice appear 
+ *
+ *   Permission to use, copy, modify, and/or distribute this software
+ *   for any purpose with or without fee is hereby granted, provided
+ *   that the above copyright notice and this permission notice appear
  *   in all copies.
- *   
- *   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL 
- *   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED 
- *   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL  
- *   THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR 
- *   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM 
- *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
- *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ *   THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ *   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *   
+ *
  *--------------------------------------------------------------------*/
 
 /*====================================================================*
@@ -24,7 +24,7 @@
  *   This module implements the Qualcomm Atheros SPI protocol for
  *   kernel-based SPI device; it is essentially an Ethernet-to-SPI
  *   serial converter;
- *				
+ *
  *--------------------------------------------------------------------*/
 
 #include <linux/errno.h>
@@ -35,7 +35,7 @@
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
-#include <linux/kthread.h>		
+#include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/netdevice.h>
@@ -67,7 +67,7 @@
 #define QCASPI_CLK_SPEED_MIN 1000000
 #define QCASPI_CLK_SPEED_MAX 16000000
 #define QCASPI_CLK_SPEED 8000000
-static int qcaspi_clkspeed = QCASPI_CLK_SPEED;		
+static int qcaspi_clkspeed = QCASPI_CLK_SPEED;
 module_param(qcaspi_clkspeed, int, 0);
 MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
 
@@ -393,7 +393,7 @@ qcaspi_receive(struct qcaspi *qca)
  * call from the qcaspi_spi_thread.
  *
  *--------------------------------------------------------------------*/
- 
+
 void
 qcaspi_flush_txq(struct qcaspi *qca)
 {
@@ -483,7 +483,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 }
 
 static int
-qcaspi_spi_thread(void *data) 
+qcaspi_spi_thread(void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
 	uint32_t vInterruptCause;
@@ -562,7 +562,7 @@ qcaspi_spi_thread(void *data)
 }
 
 static irqreturn_t
-qcaspi_intr_handler(int irq, void *data) 
+qcaspi_intr_handler(int irq, void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
 	intReq++;
@@ -573,7 +573,7 @@ qcaspi_intr_handler(int irq, void *data)
 }
 
 int
-qcaspi_netdev_open(struct net_device *dev) 
+qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
@@ -590,7 +590,7 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	if (pd == NULL)
 		return -1;
-	
+
 	dev->irq = gpio_to_irq(pd->intr_gpio);
 
 	if (dev->irq < 0)
@@ -599,13 +599,13 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (request_irq(dev->irq, qcaspi_intr_handler,
 				  IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca)) {
 		printk(KERN_ERR "qcaspi: Fail to request irq %d\n", dev->irq);
-	}	
+	}
 
 	return 0;
 }
 
 int
-qcaspi_netdev_close(struct net_device *dev) 
+qcaspi_netdev_close(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 
@@ -623,7 +623,7 @@ qcaspi_netdev_close(struct net_device *dev)
 }
 
 netdev_tx_t
-qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev) 
+qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	uint32_t frame_len;
 	uint8_t *ptmp;
@@ -690,7 +690,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 }
 
 void
-qcaspi_netdev_tx_timeout(struct net_device *dev) 
+qcaspi_netdev_tx_timeout(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	printk(KERN_INFO "qcaspi: Transmit timeout at %ld, latency %ld\n", jiffies, jiffies - dev->trans_start);
@@ -702,17 +702,17 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 }
 
 struct net_device_stats *
-qcaspi_netdev_get_stats(struct net_device *dev) 
+qcaspi_netdev_get_stats(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	return &qca->stats;
 }
 
 static int
-qcaspi_netdev_init(struct net_device *dev) 
+qcaspi_netdev_init(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
-	
+
 	dev->irq = 0;
 	dev->mtu = QCASPI_MTU;
 	dev->type = ARPHRD_ETHER;
@@ -737,7 +737,7 @@ qcaspi_netdev_init(struct net_device *dev)
 }
 
 static void
-qcaspi_netdev_uninit(struct net_device *dev) 
+qcaspi_netdev_uninit(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	kfree(qca->rx_buffer);
@@ -747,7 +747,7 @@ qcaspi_netdev_uninit(struct net_device *dev)
 }
 
 int
-qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu) 
+qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if ((new_mtu < QCAFRM_ETHMINMTU) || (new_mtu > QCAFRM_ETHMAXMTU)) {
 		return -EINVAL;
@@ -759,7 +759,7 @@ qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 }
 
 static int
-qcaspi_netdev_set_mac_address(struct net_device *dev, void *p) 
+qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 {
 	struct sockaddr *addr = p;
 	if (netif_running(dev)) {
@@ -783,7 +783,7 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 };
 
 void
-qcaspi_netdev_setup(struct net_device *dev) 
+qcaspi_netdev_setup(struct net_device *dev)
 {
 	struct qcaspi *qca = NULL;
 
@@ -831,16 +831,16 @@ static int qca_spi_probe(struct spi_device *spi_device)
 				       &len);
 		if (prop && len >= sizeof(*prop))
 			qcaspi_burst_len = be32_to_cpup(prop);
-		
-		intr_gpio = of_get_named_gpio(spi_device->dev.of_node, 
+
+		intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
 					      "intr-gpios", 0);
 
 		if (gpio_is_valid(intr_gpio)) {
-			ret = gpio_request_one(intr_gpio, GPIOF_IN, 
+			ret = gpio_request_one(intr_gpio, GPIOF_IN,
 					       "qca7k_intr0");
 
 			if (ret < 0) {
-				dev_err(&spi_device->dev, 
+				dev_err(&spi_device->dev,
 			 	"Failed to request interrupt gpio: %d!\n",
 				ret);
 			}
@@ -859,7 +859,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	    (qcaspi_legacy_mode < QCASPI_LEGACY_MODE_MIN) ||
 	    (qcaspi_legacy_mode > QCASPI_LEGACY_MODE_MAX) ||
 	    (qcaspi_burst_len < QCASPI_BURST_LEN_MIN) ||
-	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX)) 
+	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX))
 	{
 		printk(KERN_INFO "qcaspi: Invalid parameters "
 		    "(clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
@@ -875,7 +875,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 		printk(KERN_ERR "qcaspi: Unable to setup SPI device\n");
 		return -EFAULT;
 	}
-	
+
 	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d", qcaspi_netdev_setup);
 	if (!qcaspi_devs) {
 		printk(KERN_ERR "qcaspi: Unable to allocate memory for spi network device\n");
@@ -893,10 +893,10 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	qca->spi_device = spi_device;
 
 	netif_carrier_off(qca->dev);
-	
+
 	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
-				
+
 	if (signature != QCASPI_GOOD_SIGNATURE) {
 		printk(KERN_ERR "qcaspi: Invalid signature (0x%04X)\n",
 		       signature);
