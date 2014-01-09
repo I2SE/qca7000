@@ -150,9 +150,8 @@ qcaspi_write_burst(struct qcaspi *qca, uint8_t *src, uint32_t len)
 	spi_message_add_tail(&transfer[1], &msg);
 	spi_sync(qca->spi_device, &msg);
 
-	if (msg.actual_length != QCASPI_CMD_LEN + len) {
+	if (msg.actual_length != QCASPI_CMD_LEN + len)
 		return 0;
-	}
 
 	return len;
 }
@@ -172,9 +171,8 @@ qcaspi_write_legacy(struct qcaspi *qca, uint8_t *src, uint32_t len)
 	spi_message_add_tail(&transfer, &msg);
 	spi_sync(qca->spi_device, &msg);
 
-	if (msg.actual_length != len) {
+	if (msg.actual_length != len)
 		return 0;
-	}
 
 	return len;
 }
@@ -199,9 +197,8 @@ qcaspi_read_burst(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 	spi_message_add_tail(&transfer[1], &msg);
 	spi_sync(qca->spi_device, &msg);
 
-	if (msg.actual_length != QCASPI_CMD_LEN + len) {
+	if (msg.actual_length != QCASPI_CMD_LEN + len)
 		return 0;
-	}
 
 	return len;
 }
@@ -221,9 +218,8 @@ qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 	spi_message_add_tail(&transfer, &msg);
 	spi_sync(qca->spi_device, &msg);
 
-	if (msg.actual_length != len) {
+	if (msg.actual_length != len)
 		return 0;
-	}
 
 	return len;
 }
@@ -239,9 +235,8 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 	len = skb->len;
 
 	qcaspi_write_register(qca, SPI_REG_BFR_SIZE, len);
-	if (qca->legacy_mode) {
+	if (qca->legacy_mode)
 		qcaspi_tx_cmd(qca, QCA7K_SPI_WRITE | QCA7K_SPI_EXTERNAL);
-	}
 
 	offset = 0;
 	while (len) {
@@ -249,11 +244,10 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 		if (count > qca->burst_len)
 			count = qca->burst_len;
 
-		if (qca->legacy_mode) {
+		if (qca->legacy_mode)
 			bytes_written = qcaspi_write_legacy(qca, skb->data + offset, count);
-		} else {
+		else
 			bytes_written = qcaspi_write_burst(qca, skb->data + offset, count);
-		}
 
 		if (bytes_written != count)
 			return -1;
@@ -322,21 +316,19 @@ qcaspi_receive(struct qcaspi *qca)
 
 	qcaspi_write_register(qca, SPI_REG_BFR_SIZE, available);
 
-	if (qca->legacy_mode) {
+	if (qca->legacy_mode)
 		qcaspi_tx_cmd(qca, QCA7K_SPI_READ | QCA7K_SPI_EXTERNAL);
-	}
 
 	while (available) {
 		count = available;
-		if (count > qca->burst_len) {
+		if (count > qca->burst_len)
 			count = qca->burst_len;
-		}
 
-		if (qca->legacy_mode) {
+		if (qca->legacy_mode)
 			bytes_read = qcaspi_read_legacy(qca, qca->rx_buffer, count);
-		} else {
+		else
 			bytes_read = qcaspi_read_burst(qca, qca->rx_buffer, count);
-		}
+
 		cp = qca->rx_buffer;
 
 		pr_debug("qcaspi: available: %d, byte read: %d\n", available, bytes_read);
@@ -490,9 +482,9 @@ qcaspi_spi_thread(void *data)
 	printk(KERN_INFO "qcaspi: SPI thread created\n");
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
-		if (intReq == intSvc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY) {
+		if (intReq == intSvc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY)
 			schedule();
-		}
+
 		__set_current_state(TASK_RUNNING);
 
 		pr_debug("qcaspi: have work to do. int: %d, tx_skb: %p\n", intReq - intSvc, qca->txq.skb[qca->txq.head]);
@@ -540,9 +532,8 @@ qcaspi_spi_thread(void *data)
 
 			/* can only handle other interrupts if sync has occured */
 			if (qca->sync == QCASPI_SYNC_READY) {
-				if (vInterruptCause & SPI_INT_PKT_AVLBL) {
+				if (vInterruptCause & SPI_INT_PKT_AVLBL)
 					qcaspi_receive(qca);
-				}
 			}
 
 			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, vInterruptCause);
@@ -564,9 +555,9 @@ qcaspi_intr_handler(int irq, void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
 	intReq++;
-	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING) {
+	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
-	}
+
 	return IRQ_HANDLED;
 }
 
@@ -630,9 +621,8 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct sk_buff *tskb;
 	uint8_t pad_len = 0;
 
-	if (skb->len < QCAFRM_ETHMINLEN) {
+	if (skb->len < QCAFRM_ETHMINLEN)
 		pad_len = QCAFRM_ETHMINLEN - skb->len;
-	}
 
 	if (qca->txq.skb[qca->txq.tail]) {
 		printk(KERN_WARNING "qcaspi: queue was unexpectedly full!\n");
@@ -669,18 +659,16 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (new_tail >= TX_QUEUE_LEN)
 		new_tail = 0;
 
-	if (qca->txq.skb[new_tail]) {
+	if (qca->txq.skb[new_tail])
 		netif_stop_queue(qca->dev);
-	}
 
 	qca->txq.skb[qca->txq.tail] = skb;
 	qca->txq.tail = new_tail;
 
 	dev->trans_start = jiffies;
 
-	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING) {
+	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
-	}
 
 	return NETDEV_TX_OK;
 }
@@ -692,9 +680,8 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 	printk(KERN_INFO "qcaspi: Transmit timeout at %ld, latency %ld\n", jiffies, jiffies - dev->trans_start);
 	qca->stats.tx_errors++;
 	/* wake the queue if there is room */
-	if (qca->txq.skb[qca->txq.tail] == NULL) {
+	if (qca->txq.skb[qca->txq.tail] == NULL)
 		netif_wake_queue(dev);
-	}
 }
 
 struct net_device_stats *
@@ -719,9 +706,8 @@ qcaspi_netdev_init(struct net_device *dev)
 	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN + QCAFRM_FOOTER_LEN + 4) * 4;
 
 	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_ATOMIC);
-	if (!qca->rx_buffer) {
+	if (!qca->rx_buffer)
 		return -ENOBUFS;
-	}
 
 	qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
 	if (qca->rx_skb == NULL) {
@@ -745,9 +731,8 @@ qcaspi_netdev_uninit(struct net_device *dev)
 int
 qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 {
-	if ((new_mtu < QCAFRM_ETHMINMTU) || (new_mtu > QCAFRM_ETHMAXMTU)) {
+	if ((new_mtu < QCAFRM_ETHMINMTU) || (new_mtu > QCAFRM_ETHMAXMTU))
 		return -EINVAL;
-	}
 
 	dev->mtu = new_mtu;
 
@@ -758,9 +743,9 @@ static int
 qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 {
 	struct sockaddr *addr = p;
-	if (netif_running(dev)) {
+	if (netif_running(dev))
 		return -EBUSY;
-	}
+
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
 	printk("qcaspi: Setting MAC address to %pM.\n", dev->dev_addr);
 	return 0;

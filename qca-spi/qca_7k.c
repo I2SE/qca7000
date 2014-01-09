@@ -116,9 +116,8 @@ qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd)
 	cmd = __cpu_to_be16(cmd);
 	spi_sync(qca->spi_device, &msg);
 
-	if (msg.actual_length != sizeof(cmd)) {
+	if (msg.actual_length != sizeof(cmd))
 		return -1;
-	}
 
 	return 0;
 }
