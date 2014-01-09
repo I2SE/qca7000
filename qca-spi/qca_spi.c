@@ -225,8 +225,6 @@ qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 		return 0;
 	}
 
-	/* print_hex_dump(KERN_DEBUG, "read_legacy: ", DUMP_PREFIX_ADDRESS, 16, 1, dst, len, true); */
-
 	return len;
 }
 
@@ -664,8 +662,6 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	ptmp = skb_put(skb, QCAFRM_FOOTER_LEN);
 	QcaFrmCreateFooter(ptmp);
-
-	/* print_hex_dump(KERN_DEBUG, "xmit_frame: ", DUMP_PREFIX_ADDRESS, 16, 1, skb, skb->len, true); */
 
 	pr_debug("qcaspi: Tx-ing packet: Size: 0x%08x\n", skb->len);
 
