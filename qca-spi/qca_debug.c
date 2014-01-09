@@ -37,7 +37,6 @@
 void
 dump_reg(char *str, struct qcaspi *qca)
 {
-#if 1
 	struct reg {
 		char *name;
 		uint32_t address;
@@ -62,5 +61,4 @@ dump_reg(char *str, struct qcaspi *qca)
 		value = qcaspi_read_register(qca, regs[i].address);
 		printk(KERN_DEBUG "qcaspi: %s: %lu: dumpreg: %s(0x%04x)=0x%08x\n", str, jiffies, regs[i].name, regs[i].address, value);
 	}
-#endif
 }

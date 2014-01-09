@@ -638,13 +638,11 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 		pad_len = QCAFRM_ETHMINLEN - skb->len;
 	}
 
-#if 1
 	if (qca->txq.skb[qca->txq.tail]) {
 		printk(KERN_WARNING "qcaspi: queue was unexpectedly full!\n");
 		netif_stop_queue(qca->dev);
 		return NETDEV_TX_BUSY;
 	}
-#endif
 
 	if (skb_headroom(skb) < QCAFRM_HEADER_LEN || skb_tailroom(skb) < QCAFRM_FOOTER_LEN + pad_len) {
 		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN, QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
