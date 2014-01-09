@@ -80,6 +80,7 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 {
 	int32_t ret = QCAFRM_GATHER;
 	uint16_t len;
+	
 	switch(frmHdl->state)
 	{
 	case QCAFRM_HW_LEN0:
@@ -92,12 +93,10 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			frmHdl->state = QCAFRM_HW_LEN0;
 		}
 		break;
-
 	case QCAFRM_HW_LEN2:
 	case QCAFRM_HW_LEN3:
 		frmHdl->state--;
 		break;
-
 	/* 4 bytes header pattern */
 	case QCAFRM_WAIT_AA1:
 	case QCAFRM_WAIT_AA2:
@@ -113,23 +112,19 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			frmHdl->state--;
 		}
 		break;
-
 		/* 2 bytes length. */
 		/* Borrow offset field to hold length for now. */
 	case QCAFRM_WAIT_LEN_BYTE0:
 		frmHdl->offset = recvByte;
 		frmHdl->state--;
 		break;
-
 	case QCAFRM_WAIT_LEN_BYTE1:
 		frmHdl->offset = frmHdl->offset | (recvByte << 8);
 		frmHdl->state--;
 		break;
-
 	case QCAFRM_WAIT_RSVD_BYTE1:
 		frmHdl->state--;
 		break;
-
 	case QCAFRM_WAIT_RSVD_BYTE2:
 		frmHdl->state--;
 		len = frmHdl->offset;
@@ -145,13 +140,11 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			frmHdl->offset = 0;
 		}
 		break;
-
 	default:
 		/* Receiving Ethernet frame itself. */
 		buf[frmHdl->offset++] = recvByte;
 		frmHdl->state--;
 		break;
-
 	case QCAFRM_WAIT_551:
 		if (recvByte != 0x55)
 		{
@@ -163,7 +156,6 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			frmHdl->state--;
 		}
 		break;
-
 	case QCAFRM_WAIT_552:
 		if (recvByte != 0x55)
 		{

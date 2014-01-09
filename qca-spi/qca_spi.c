@@ -339,23 +339,18 @@ qcaspi_receive(struct qcaspi *qca)
 			int32_t retcode = QcaFrmFsmDecode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp++);
 			switch (retcode) {
 			case QCAFRM_GATHER:
-				break;
-
 			case QCAFRM_NOHEAD:
 				break;
-
 			case QCAFRM_NOTAIL:
 				pr_debug("qcaspi: no RX tail\n");
 				qca->stats.rx_errors++;
 				qca->stats.rx_dropped++;
 				break;
-
 			case QCAFRM_INVLEN:
 				pr_debug("qcaspi: invalid RX length\n");
 				qca->stats.rx_errors++;
 				qca->stats.rx_dropped++;
 				break;
-
 			default:
 				qca->rx_skb->dev = qca->dev;
 				qca->stats.rx_packets++;
