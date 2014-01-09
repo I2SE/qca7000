@@ -82,10 +82,6 @@
 #define SPI_ACTRL_PKT_AVA_SPLIT_MODE (1 << 8)
 #define SPI_ACTRL_PKT_AVA_INTR_MODE (1 << 0)
 
-/*====================================================================*
- *   spi functions;
- *--------------------------------------------------------------------*/
-
 uint16_t qcaspi_read_register(struct qcaspi *qca, uint16_t reg);
 void qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value);
 int qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd);
