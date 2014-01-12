@@ -80,9 +80,8 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 {
 	int32_t ret = QCAFRM_GATHER;
 	uint16_t len;
-	
-	switch(frmHdl->state)
-	{
+
+	switch (frmHdl->state) {
 	case QCAFRM_HW_LEN0:
 	case QCAFRM_HW_LEN1:
 		/* by default, just go to next state */
@@ -102,13 +101,10 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 	case QCAFRM_WAIT_AA2:
 	case QCAFRM_WAIT_AA3:
 	case QCAFRM_WAIT_AA4:
-		if (recvByte != 0xAA)
-		{
+		if (recvByte != 0xAA) {
 			ret = QCAFRM_NOHEAD;
 			frmHdl->state = QCAFRM_HW_LEN0;
-		}
-		else
-		{
+		} else {
 			frmHdl->state--;
 		}
 		break;
@@ -128,13 +124,10 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 	case QCAFRM_WAIT_RSVD_BYTE2:
 		frmHdl->state--;
 		len = frmHdl->offset;
-		if (len > buf_len || len < QCAFRM_ETHMINLEN)
-		{
+		if (len > buf_len || len < QCAFRM_ETHMINLEN) {
 			ret = QCAFRM_INVLEN;
 			frmHdl->state = QCAFRM_HW_LEN0;
-		}
-		else
-		{
+		} else {
 			frmHdl->state = (QcaFrmState)(len + 1);
 			/* Remaining number of bytes. */
 			frmHdl->offset = 0;
@@ -146,24 +139,18 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 		frmHdl->state--;
 		break;
 	case QCAFRM_WAIT_551:
-		if (recvByte != 0x55)
-		{
+		if (recvByte != 0x55) {
 			ret = QCAFRM_NOTAIL;
 			frmHdl->state = QCAFRM_HW_LEN0;
-		}
-		else
-		{
+		} else {
 			frmHdl->state--;
 		}
 		break;
 	case QCAFRM_WAIT_552:
-		if (recvByte != 0x55)
-		{
+		if (recvByte != 0x55) {
 			ret = QCAFRM_NOTAIL;
 			frmHdl->state = QCAFRM_HW_LEN0;
-		}
-		else
-		{
+		} else {
 			ret = frmHdl->offset;
 			/* Frame is fully received. */
 			frmHdl->state = QCAFRM_HW_LEN0;

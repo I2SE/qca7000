@@ -894,8 +894,7 @@ static int qca_spi_remove(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 
-	if (qca && qca->spi_board)
-	{
+	if (qca && qca->spi_board) {
 		struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 		if (pd)
 			gpio_free(pd->intr_gpio);
