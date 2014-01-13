@@ -91,7 +91,8 @@ enum qcafrm_state {
 	QCAFRM_WAIT_RSVD_BYTE1 = QCAFRM_WAIT_AA4 - 3,
 	QCAFRM_WAIT_RSVD_BYTE2 = QCAFRM_WAIT_AA4 - 4,
 
-	/*  The frame length is used as the state until the end of the Ethernet frame */
+	/*  The frame length is used as the state until
+	 *  the end of the Ethernet frame */
 	/*  Waiting for first 0x55 of footer */
 	QCAFRM_WAIT_551 = 1,
 
@@ -124,14 +125,15 @@ void qcafrm_fsm_init(struct qcafrm_handle *frmHdl);
 
 /*====================================================================*
  *
- *   Gather received bytes and try to extract a full Ethernet frame by following
- *   a simple state machine.
+ *   Gather received bytes and try to extract a full Ethernet frame
+ *   by following a simple state machine.
  *
  * Return:   QCAFRM_GATHER       No Ethernet frame fully received yet.
  *           QCAFRM_NOHEAD       Header expected but not found.
  *           QCAFRM_INVLEN       QCA7K frame length is invalid
  *           QCAFRM_NOTAIL       Footer expected but not found.
- *           > 0                 Number of byte in the fully received Ethernet frame
+ *           > 0                 Number of byte in the fully received
+ *                               Ethernet frame
  *
  *--------------------------------------------------------------------*/
 

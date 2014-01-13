@@ -65,13 +65,15 @@ qcafrm_fsm_init(struct qcafrm_handle *frmHdl)
  *
  *   QcaFrmFsmDecode
  *
- *   Gather received bytes and try to extract a full ethernet frame by following a simple state machine.
+ *   Gather received bytes and try to extract a full ethernet frame by
+ *   following a simple state machine.
  *
  * Return:   QCAFRM_GATHER       No ethernet frame fully received yet.
  *           QCAFRM_NOHEAD       Header expected but not found.
  *           QCAFRM_INVLEN       Atheros frame length is invalid
  *           QCAFRM_NOTAIL       Footer expected but not found.
- *           > 0                 Number of byte in the fully received Ethernet frame
+ *           > 0                 Number of byte in the fully received
+ *                               Ethernet frame
  *
  *--------------------------------------------------------------------*/
 

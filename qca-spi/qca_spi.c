@@ -117,17 +117,17 @@ static volatile unsigned int intr_svc;
 uint32_t
 disable_spi_interrupts(struct qcaspi *qca)
 {
-	uint32_t old_intr_enable = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
+	uint32_t old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
-	return old_intr_enable;
+	return old_value;
 }
 
 uint32_t
 enable_spi_interrupts(struct qcaspi *qca, uint32_t intr_enable)
 {
-	uint32_t old_intr_enable = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
+	uint32_t old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
-	return old_intr_enable;
+	return old_value;
 }
 
 uint32_t
@@ -244,10 +244,13 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 		if (count > qca->burst_len)
 			count = qca->burst_len;
 
-		if (qca->legacy_mode)
-			bytes_written = qcaspi_write_legacy(qca, skb->data + offset, count);
-		else
-			bytes_written = qcaspi_write_burst(qca, skb->data + offset, count);
+		if (qca->legacy_mode) {
+			bytes_written = qcaspi_write_legacy(qca,
+					skb->data + offset, count);
+		} else {
+			bytes_written = qcaspi_write_burst(qca,
+					skb->data + offset, count);
+		}
 
 		if (bytes_written != count)
 			return -1;
@@ -266,7 +269,8 @@ qcaspi_transmit(struct qcaspi *qca)
 
 	available = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
 
-	while (qca->txq.skb[qca->txq.head] && available >= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN) {
+	while (qca->txq.skb[qca->txq.head] &&
+		available >= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN) {
 		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1)
 			return -1;
 
@@ -325,10 +329,13 @@ qcaspi_receive(struct qcaspi *qca)
 		if (count > qca->burst_len)
 			count = qca->burst_len;
 
-		if (qca->legacy_mode)
-			bytes_read = qcaspi_read_legacy(qca, qca->rx_buffer, count);
-		else
-			bytes_read = qcaspi_read_burst(qca, qca->rx_buffer, count);
+		if (qca->legacy_mode) {
+			bytes_read = qcaspi_read_legacy(qca, qca->rx_buffer,
+					count);
+		} else {
+			bytes_read = qcaspi_read_burst(qca, qca->rx_buffer,
+					count);
+		}
 
 		cp = qca->rx_buffer;
 
@@ -338,7 +345,11 @@ qcaspi_receive(struct qcaspi *qca)
 		available -= bytes_read;
 
 		while ((bytes_read--) && (qca->rx_skb)) {
-			int32_t retcode = qcafrm_fsm_decode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp);
+			int32_t retcode;
+			retcode = qcafrm_fsm_decode(&qca->lFrmHdl,
+					qca->rx_skb->data,
+					skb_tailroom(qca->rx_skb),
+					*cp);
 			cp++;
 			switch (retcode) {
 			case QCAFRM_GATHER:
@@ -359,10 +370,12 @@ qcaspi_receive(struct qcaspi *qca)
 				qca->stats.rx_packets++;
 				qca->stats.rx_bytes += retcode;
 				skb_put(qca->rx_skb, retcode);
-				qca->rx_skb->protocol = eth_type_trans(qca->rx_skb, qca->rx_skb->dev);
+				qca->rx_skb->protocol = eth_type_trans(
+						qca->rx_skb, qca->rx_skb->dev);
 				qca->rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
 				netif_rx_ni(qca->rx_skb);
-				qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
+				qca->rx_skb = dev_alloc_skb(qca->dev->mtu +
+						VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->dev, "out of RX resources\n");
 					qca->stats.rx_errors++;
@@ -407,7 +420,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 	static uint32_t reset_count;
 
 	if (event == QCASPI_SYNC_CPUON) {
-		/* Read signature twice, if not valid go back to unknown state. */
+		/* Read signature twice, if not valid
+		 * go back to unknown state. */
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
@@ -415,7 +429,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 			netdev_dbg(qca->dev, "sync: got CPU on, but signature was invalid, restart\n");
 		} else {
 			/* ensure that the WRBUF is empty */
-			wrbuf_space = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
+			wrbuf_space = qcaspi_read_register(qca,
+					SPI_REG_WRBUF_SPC_AVA);
 			if (wrbuf_space != QCASPI_HW_BUF_LEN) {
 				netdev_dbg(qca->dev, "sync: got CPU on, but wrbuf not empty. reset!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -452,7 +467,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		/* TODO: use GPIO to reset QCA7000 in legacy mode*/
 		netdev_dbg(qca->dev, "sync: resetting device.\n");
 		spi_config = qcaspi_read_register(qca, SPI_REG_SPI_CONFIG);
-		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config | QCASPI_SLAVE_RESET_BIT);
+		spi_config |= QCASPI_SLAVE_RESET_BIT;
+		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config);
 
 		qca->sync = QCASPI_SYNC_RESET;
 		reset_count = 0;
@@ -481,7 +497,9 @@ qcaspi_spi_thread(void *data)
 	netdev_info(qca->dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
-		if (intr_req == intr_svc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY)
+		if ((intr_req == intr_svc) &&
+		    (qca->txq.skb[qca->txq.head] == NULL) &&
+		    (qca->sync == QCASPI_SYNC_READY))
 			schedule();
 
 		__set_current_state(TASK_RUNNING);
@@ -504,7 +522,8 @@ qcaspi_spi_thread(void *data)
 		if (intr_svc != intr_req) {
 			intr_svc = intr_req;
 			intr_enable = disable_spi_interrupts(qca);
-			intr_cause = qcaspi_read_register(qca, SPI_REG_INTR_CAUSE);
+			intr_cause = qcaspi_read_register(qca,
+					SPI_REG_INTR_CAUSE);
 			netdev_dbg(qca->dev, "interrupts: 0x%08x\n",
 					intr_cause);
 
@@ -515,7 +534,10 @@ qcaspi_spi_thread(void *data)
 				if (qca->sync != QCASPI_SYNC_READY)
 					continue;
 
-				intr_enable = (SPI_INT_CPU_ON | SPI_INT_PKT_AVLBL | SPI_INT_RDBUF_ERR | SPI_INT_WRBUF_ERR);
+				intr_enable = (SPI_INT_CPU_ON |
+					SPI_INT_PKT_AVLBL |
+					SPI_INT_RDBUF_ERR |
+					SPI_INT_WRBUF_ERR);
 				netif_carrier_on(qca->dev);
 			}
 
@@ -533,13 +555,15 @@ qcaspi_spi_thread(void *data)
 				continue;
 			}
 
-			/* can only handle other interrupts if sync has occured */
+			/* can only handle other interrupts
+			 * if sync has occured */
 			if (qca->sync == QCASPI_SYNC_READY) {
 				if (intr_cause & SPI_INT_PKT_AVLBL)
 					qcaspi_receive(qca);
 			}
 
-			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, intr_cause);
+			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE,
+					intr_cause);
 			enable_spi_interrupts(qca, intr_enable);
 			netdev_dbg(qca->dev, "acking int: 0x%08x\n",
 					intr_cause);
@@ -559,7 +583,8 @@ qcaspi_intr_handler(int irq, void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
 	intr_req++;
-	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING)
+	if (qca->spi_thread &&
+		qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
 
 	return IRQ_HANDLED;
@@ -569,7 +594,9 @@ int
 qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
-	struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
+	struct spi_platform_data *pd;
+
+	pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
 	intr_req = 0;
@@ -579,7 +606,8 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	netif_start_queue(qca->dev);
 
-	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread, qca, QCASPI_MODNAME);
+	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
+			qca, QCASPI_MODNAME);
 
 	if (pd == NULL)
 		return -1;
@@ -635,8 +663,10 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 		return NETDEV_TX_BUSY;
 	}
 
-	if (skb_headroom(skb) < QCAFRM_HEADER_LEN || skb_tailroom(skb) < QCAFRM_FOOTER_LEN + pad_len) {
-		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN, QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
+	if ((skb_headroom(skb) < QCAFRM_HEADER_LEN) ||
+	    (skb_tailroom(skb) < QCAFRM_FOOTER_LEN + pad_len)) {
+		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN,
+				QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
 		if (tskb == NULL) {
 			netdev_dbg(qca->dev, "could not allocate tx_buff in qcaspi_netdev_xmit\n");
 			return NETDEV_TX_BUSY;
@@ -673,7 +703,8 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	dev->trans_start = jiffies;
 
-	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING)
+	if (qca->spi_thread &&
+		qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
 
 	return NETDEV_TX_OK;
@@ -710,7 +741,8 @@ qcaspi_netdev_init(struct net_device *dev)
 	qca->legacy_mode = qcaspi_legacy_mode;
 	qca->burst_len = qcaspi_burst_len;
 	qca->spi_thread = NULL;
-	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN + QCAFRM_FOOTER_LEN + 4) * 4;
+	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN +
+		QCAFRM_FOOTER_LEN + 4) * 4;
 
 	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_ATOMIC);
 	if (!qca->rx_buffer)
@@ -813,26 +845,26 @@ static int qca_spi_probe(struct spi_device *spi_device)
 		int len;
 		int ret;
 
-		prop = of_get_property(spi_device->dev.of_node, "legacy-mode",
-				       &len);
+		prop = of_get_property(spi_device->dev.of_node,
+				"legacy-mode", &len);
 		if (prop && len >= sizeof(*prop))
 			qcaspi_legacy_mode = be32_to_cpup(prop);
 
-		prop = of_get_property(spi_device->dev.of_node, "burst-length",
-				       &len);
+		prop = of_get_property(spi_device->dev.of_node,
+				"burst-length", &len);
 		if (prop && len >= sizeof(*prop))
 			qcaspi_burst_len = be32_to_cpup(prop);
 
 		intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
-					      "intr-gpios", 0);
+				"intr-gpios", 0);
 
 		if (gpio_is_valid(intr_gpio)) {
 			ret = gpio_request_one(intr_gpio, GPIOF_IN,
-					       "qca7k_intr0");
+					"qca7k_intr0");
 
 			if (ret < 0) {
 				dev_err(&spi_device->dev,
-			 	"Failed to request interrupt gpio: %d!\n",
+				"Failed to request interrupt gpio: %d!\n",
 				ret);
 			}
 		}
@@ -865,7 +897,8 @@ static int qca_spi_probe(struct spi_device *spi_device)
 		return -EFAULT;
 	}
 
-	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d", qcaspi_netdev_setup);
+	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d",
+			qcaspi_netdev_setup);
 	if (!qcaspi_devs) {
 		dev_err(&spi_device->dev, "Unable to allocate memory for spi network device\n");
 		return -ENOMEM;
@@ -908,7 +941,8 @@ static int qca_spi_remove(struct spi_device *spi_device)
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 
 	if (qca && qca->spi_board) {
-		struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
+		struct spi_platform_data *pd;
+		pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 		if (pd)
 			gpio_free(pd->intr_gpio);
 	}
