@@ -65,7 +65,7 @@
 /* QCA7K Framing. */
 #define QCAFRM_ERR_BASE -1000
 
-typedef enum {
+enum qcafrm_state {
 	QCAFRM_HW_LEN0 = 0x8000,
 	QCAFRM_HW_LEN1 = QCAFRM_HW_LEN0 - 1,
 	QCAFRM_HW_LEN2 = QCAFRM_HW_LEN1 - 1,
@@ -97,32 +97,30 @@ typedef enum {
 
 	/*  Waiting for second 0x55 of footer */
 	QCAFRM_WAIT_552 = QCAFRM_WAIT_551 - 1
-} QcaFrmState;
+};
 
 /*====================================================================*
- *
- *   QcaFrmHdl
  *
  *   Structure to maintain the frame decoding during reception.
  *
  *--------------------------------------------------------------------*/
 
-typedef struct {
+struct qcafrm_handle {
 	/*  Current decoding state */
-	QcaFrmState state;
+	enum qcafrm_state state;
 
 	/* Offset in buffer (borrowed for length too) */
 	int16_t offset;
 
 	/* Frame length as kept by this module */
 	uint16_t len;
-} QcaFrmHdl;
+};
 
 int32_t QcaFrmCreateHeader(uint8_t *buf, uint16_t len);
 
 int32_t QcaFrmCreateFooter(uint8_t *buf);
 
-void QcaFrmFsmInit(QcaFrmHdl *frmHdl);
+void QcaFrmFsmInit(struct qcafrm_handle *frmHdl);
 
 /*====================================================================*
  *
@@ -139,6 +137,6 @@ void QcaFrmFsmInit(QcaFrmHdl *frmHdl);
  *
  *--------------------------------------------------------------------*/
 
-int32_t QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *ethBuf, uint16_t ethBufLen, uint8_t recvByte);
+int32_t QcaFrmFsmDecode(struct qcafrm_handle *frmHdl, uint8_t *ethBuf, uint16_t ethBufLen, uint8_t recvByte);
 
 #endif

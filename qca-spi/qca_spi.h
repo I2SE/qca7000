@@ -72,7 +72,7 @@ struct qcaspi {
 	uint32_t buffer_size;
 	uint8_t sync;
 
-	QcaFrmHdl lFrmHdl;
+	struct qcafrm_handle lFrmHdl;
 	struct sk_buff *rx_skb;
 
 	/* user configurable options */

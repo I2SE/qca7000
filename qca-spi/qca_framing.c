@@ -56,7 +56,7 @@ QcaFrmCreateFooter(uint8_t *buf)
 }
 
 void
-QcaFrmFsmInit(QcaFrmHdl *frmHdl)
+QcaFrmFsmInit(struct qcafrm_handle *frmHdl)
 {
 	frmHdl->state = QCAFRM_HW_LEN0;
 }
@@ -76,7 +76,7 @@ QcaFrmFsmInit(QcaFrmHdl *frmHdl)
  *--------------------------------------------------------------------*/
 
 int32_t
-QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvByte)
+QcaFrmFsmDecode(struct qcafrm_handle *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvByte)
 {
 	int32_t ret = QCAFRM_GATHER;
 	uint16_t len;
@@ -128,7 +128,7 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 			ret = QCAFRM_INVLEN;
 			frmHdl->state = QCAFRM_HW_LEN0;
 		} else {
-			frmHdl->state = (QcaFrmState)(len + 1);
+			frmHdl->state = (enum qcafrm_state)(len + 1);
 			/* Remaining number of bytes. */
 			frmHdl->offset = 0;
 		}
