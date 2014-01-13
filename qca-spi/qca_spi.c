@@ -748,6 +748,7 @@ qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 static int
 qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 {
+	struct qcaspi *qca = netdev_priv(dev);
 	struct sockaddr *addr = p;
 	if (netif_running(dev))
 		return -EBUSY;
