@@ -73,7 +73,7 @@ MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
 
 #define QCASPI_LEGACY_MODE_MIN 0
 #define QCASPI_LEGACY_MODE_MAX 1
-static int qcaspi_legacy_mode = 0;
+static int qcaspi_legacy_mode = QCASPI_LEGACY_MODE_MIN;
 module_param(qcaspi_legacy_mode, int, 0);
 MODULE_PARM_DESC(qcaspi_legacy_mode, "Turn on/off legacy mode.");
 
