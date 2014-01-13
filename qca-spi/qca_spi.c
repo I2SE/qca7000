@@ -300,17 +300,18 @@ qcaspi_receive(struct qcaspi *qca)
 	if (qca->rx_skb == NULL) {
 		qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
 		if (qca->rx_skb == NULL) {
-			printk(KERN_DEBUG "qcaspi: out of RX resources\n");
+			netdev_dbg(qca->dev, "out of RX resources\n");
 			return -1;
 		}
 	}
 
 	/* Read the packet size. */
 	available = qcaspi_read_register(qca, SPI_REG_RDBUF_BYTE_AVA);
-	pr_debug("qcaspi: qcaspi_receive: SPI_REG_RDBUF_BYTE_AVA: Value: %08x\n", available);
+	netdev_dbg(qca->dev, "qcaspi_receive: SPI_REG_RDBUF_BYTE_AVA: Value: %08x\n",
+			available);
 
 	if (available == 0) {
-		printk(KERN_DEBUG "qcaspi: qcaspi_receive called without any data being available!\n");
+		netdev_dbg(qca->dev, "qcaspi_receive called without any data being available!\n");
 		return -1;
 	}
 
@@ -331,7 +332,8 @@ qcaspi_receive(struct qcaspi *qca)
 
 		cp = qca->rx_buffer;
 
-		pr_debug("qcaspi: available: %d, byte read: %d\n", available, bytes_read);
+		netdev_dbg(qca->dev, "available: %d, byte read: %d\n",
+				available, bytes_read);
 
 		available -= bytes_read;
 
@@ -342,12 +344,12 @@ qcaspi_receive(struct qcaspi *qca)
 			case QCAFRM_NOHEAD:
 				break;
 			case QCAFRM_NOTAIL:
-				pr_debug("qcaspi: no RX tail\n");
+				netdev_dbg(qca->dev, "no RX tail\n");
 				qca->stats.rx_errors++;
 				qca->stats.rx_dropped++;
 				break;
 			case QCAFRM_INVLEN:
-				pr_debug("qcaspi: invalid RX length\n");
+				netdev_dbg(qca->dev, "invalid RX length\n");
 				qca->stats.rx_errors++;
 				qca->stats.rx_dropped++;
 				break;
@@ -361,7 +363,7 @@ qcaspi_receive(struct qcaspi *qca)
 				netif_rx_ni(qca->rx_skb);
 				qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
-					printk(KERN_DEBUG "qcaspi: out of RX resources\n");
+					netdev_dbg(qca->dev, "out of RX resources\n");
 					qca->stats.rx_errors++;
 					break;
 				}
@@ -409,15 +411,15 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			qca->sync = QCASPI_SYNC_UNKNOWN;
-			printk(KERN_DEBUG "qcaspi: sync: got CPU on, but signature was invalid, restart\n");
+			netdev_dbg(qca->dev, "sync: got CPU on, but signature was invalid, restart\n");
 		} else {
 			/* ensure that the WRBUF is empty */
 			wrbuf_space = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
 			if (wrbuf_space != QCASPI_HW_BUF_LEN) {
-				printk(KERN_DEBUG "qcaspi: sync: got CPU on, but wrbuf not empty. reset!\n");
+				netdev_dbg(qca->dev, "sync: got CPU on, but wrbuf not empty. reset!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 			} else {
-				printk(KERN_DEBUG "qcaspi: sync: got CPU on, now in sync\n");
+				netdev_dbg(qca->dev, "sync: got CPU on, now in sync\n");
 				qca->sync = QCASPI_SYNC_READY;
 				return;
 			}
@@ -432,7 +434,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			qca->sync = QCASPI_SYNC_UNKNOWN;
-			printk(KERN_DEBUG "qcaspi: sync: bad signature, restart\n");
+			netdev_dbg(qca->dev, "sync: bad signature, restart\n");
 			/* don't reset right away */
 			return;
 		}
@@ -442,12 +444,12 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		/* Read signature, if not valid stay in unknown state */
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
-			printk(KERN_DEBUG "qcaspi: sync: could not read signature to reset device, retry.\n");
+			netdev_dbg(qca->dev, "sync: could not read signature to reset device, retry.\n");
 			return;
 		}
 
 		/* TODO: use GPIO to reset QCA7000 in legacy mode*/
-		printk(KERN_DEBUG "qcaspi: sync: resetting device.\n");
+		netdev_dbg(qca->dev, "sync: resetting device.\n");
 		spi_config = qcaspi_read_register(qca, SPI_REG_SPI_CONFIG);
 		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config | QCASPI_SLAVE_RESET_BIT);
 
@@ -458,11 +460,12 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 
 	if (qca->sync == QCASPI_SYNC_RESET) {
 		++reset_count;
-		printk(KERN_DEBUG "qcaspi: sync: waiting for CPU on, count %d.\n", reset_count);
+		netdev_dbg(qca->dev, "sync: waiting for CPU on, count %d.\n",
+				reset_count);
 		if (reset_count >= QCASPI_RESET_TIMEOUT) {
 			/* reset did not seem to take place, try again */
 			qca->sync = QCASPI_SYNC_UNKNOWN;
-			printk(KERN_DEBUG "qcaspi: sync: reset timeout, restarting process.\n");
+			netdev_dbg(qca->dev, "sync: reset timeout, restarting process.\n");
 		}
 	}
 }
@@ -474,7 +477,7 @@ qcaspi_spi_thread(void *data)
 	uint32_t vInterruptCause;
 	uint32_t intr_enable;
 
-	printk(KERN_INFO "qcaspi: SPI thread created\n");
+	netdev_info(qca->dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (intReq == intSvc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY)
@@ -482,12 +485,15 @@ qcaspi_spi_thread(void *data)
 
 		__set_current_state(TASK_RUNNING);
 
-		pr_debug("qcaspi: have work to do. int: %d, tx_skb: %p\n", intReq - intSvc, qca->txq.skb[qca->txq.head]);
+		netdev_dbg(qca->dev, "have work to do. int: %d, tx_skb: %p\n",
+				intReq - intSvc,
+				qca->txq.skb[qca->txq.head]);
 
 		qcaspi_qca7k_sync(qca, QCASPI_SYNC_UPDATE);
 
 		if (qca->sync != QCASPI_SYNC_READY) {
-			printk(KERN_DEBUG "qcaspi: sync: not ready %u, turn off carrier and flush\n", (unsigned int) qca->sync);
+			netdev_dbg(qca->dev, "sync: not ready %u, turn off carrier and flush\n",
+					(unsigned int) qca->sync);
 			netif_carrier_off(qca->dev);
 			qcaspi_flush_txq(qca);
 			netif_wake_queue(qca->dev);
@@ -498,7 +504,8 @@ qcaspi_spi_thread(void *data)
 			intSvc = intReq;
 			intr_enable = disable_spi_interrupts(qca);
 			vInterruptCause = qcaspi_read_register(qca, SPI_REG_INTR_CAUSE);
-			pr_debug("qcaspi: interrupts: 0x%08x\n", vInterruptCause);
+			netdev_dbg(qca->dev, "interrupts: 0x%08x\n",
+					vInterruptCause);
 
 			if (vInterruptCause & SPI_INT_CPU_ON) {
 				qcaspi_qca7k_sync(qca, QCASPI_SYNC_CPUON);
@@ -513,14 +520,14 @@ qcaspi_spi_thread(void *data)
 
 			if (vInterruptCause & SPI_INT_RDBUF_ERR) {
 				/* restart sync */
-				printk(KERN_DEBUG "qcaspi: ===> rdbuf error!\n");
+				netdev_dbg(qca->dev, "===> rdbuf error!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 				continue;
 			}
 
 			if (vInterruptCause & SPI_INT_WRBUF_ERR) {
 				/* restart sync */
-				printk(KERN_DEBUG "qcaspi: ===> wrbuf error!\n");
+				netdev_dbg(qca->dev, "===> wrbuf error!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 				continue;
 			}
@@ -533,14 +540,15 @@ qcaspi_spi_thread(void *data)
 
 			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, vInterruptCause);
 			enable_spi_interrupts(qca, intr_enable);
-			pr_debug("qcaspi: acking int: 0x%08x\n", vInterruptCause);
+			netdev_dbg(qca->dev, "acking int: 0x%08x\n",
+					vInterruptCause);
 		}
 
 		if (qca->txq.skb[qca->txq.head] != NULL)
 			qcaspi_transmit(qca);
 	}
 	set_current_state(TASK_RUNNING);
-	printk(KERN_INFO "qcaspi: SPI thread exit\n");
+	netdev_info(qca->dev, "SPI thread exit\n");
 
 	return 0;
 }
@@ -582,7 +590,8 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	if (request_irq(dev->irq, qcaspi_intr_handler,
 				  IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca)) {
-		printk(KERN_ERR "qcaspi: Fail to request irq %d\n", dev->irq);
+		netdev_err(qca->dev, "Fail to request irq %d\n",
+				dev->irq);
 	}
 
 	return 0;
@@ -620,7 +629,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 		pad_len = QCAFRM_ETHMINLEN - skb->len;
 
 	if (qca->txq.skb[qca->txq.tail]) {
-		printk(KERN_WARNING "qcaspi: queue was unexpectedly full!\n");
+		netdev_warn(qca->dev, "queue was unexpectedly full!\n");
 		netif_stop_queue(qca->dev);
 		return NETDEV_TX_BUSY;
 	}
@@ -628,7 +637,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (skb_headroom(skb) < QCAFRM_HEADER_LEN || skb_tailroom(skb) < QCAFRM_FOOTER_LEN + pad_len) {
 		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN, QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
 		if (tskb == NULL) {
-			printk(KERN_DEBUG "qcaspi: could not allocate tx_buff in qcaspi_netdev_xmit\n");
+			netdev_dbg(qca->dev, "could not allocate tx_buff in qcaspi_netdev_xmit\n");
 			return NETDEV_TX_BUSY;
 		}
 		dev_kfree_skb(skb);
@@ -648,7 +657,8 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	ptmp = skb_put(skb, QCAFRM_FOOTER_LEN);
 	QcaFrmCreateFooter(ptmp);
 
-	pr_debug("qcaspi: Tx-ing packet: Size: 0x%08x\n", skb->len);
+	netdev_dbg(qca->dev, "Tx-ing packet: Size: 0x%08x\n",
+			skb->len);
 
 	new_tail = qca->txq.tail + 1;
 	if (new_tail >= TX_QUEUE_LEN)
@@ -672,7 +682,8 @@ void
 qcaspi_netdev_tx_timeout(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
-	printk(KERN_INFO "qcaspi: Transmit timeout at %ld, latency %ld\n", jiffies, jiffies - dev->trans_start);
+	netdev_info(qca->dev, "Transmit timeout at %ld, latency %ld\n",
+			jiffies, jiffies - dev->trans_start);
 	qca->stats.tx_errors++;
 	/* wake the queue if there is room */
 	if (qca->txq.skb[qca->txq.tail] == NULL)
@@ -706,7 +717,7 @@ qcaspi_netdev_init(struct net_device *dev)
 
 	qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
 	if (qca->rx_skb == NULL) {
-		printk(KERN_INFO "qcaspi: Failed to allocate RX sk_buff.\n");
+		netdev_info(qca->dev, "Failed to allocate RX sk_buff.\n");
 		return -ENOBUFS;
 	}
 
@@ -742,7 +753,9 @@ qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 		return -EBUSY;
 
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
-	printk("qcaspi: Setting MAC address to %pM.\n", dev->dev_addr);
+	netdev_info(qca->dev, "Setting MAC address to %pM.\n",
+			dev->dev_addr);
+
 	return 0;
 }
 
@@ -789,8 +802,8 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	int intr_gpio = 0;
 	uint32_t signature;
 
-	printk(KERN_INFO "qcaspi: SPI device probe (version %s, irq=%d)\n",
-	       QCASPI_VERSION, spi_device->irq);
+	dev_info(&spi_device->dev, "SPI device probe (version %s, irq=%d)\n",
+		QCASPI_VERSION, spi_device->irq);
 
 	/* TODO: Make module parameter higher prio as device tree */
 	if (spi_device->dev.of_node) {
@@ -837,30 +850,29 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	    (qcaspi_burst_len < QCASPI_BURST_LEN_MIN) ||
 	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX))
 	{
-		printk(KERN_INFO "qcaspi: Invalid parameters "
-		    "(clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
-		    qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
+		dev_info(&spi_device->dev, "Invalid parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
+			qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
 		return -EINVAL;
 	}
-	printk(KERN_INFO "qcaspi: Get parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
+	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
 	       qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
 
 	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
 	if (spi_setup(spi_device) < 0) {
-		printk(KERN_ERR "qcaspi: Unable to setup SPI device\n");
+		dev_err(&spi_device->dev, "Unable to setup SPI device\n");
 		return -EFAULT;
 	}
 
 	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d", qcaspi_netdev_setup);
 	if (!qcaspi_devs) {
-		printk(KERN_ERR "qcaspi: Unable to allocate memory for spi network device\n");
+		dev_err(&spi_device->dev, "Unable to allocate memory for spi network device\n");
 		return -ENOMEM;
 	}
 	qca = netdev_priv(qcaspi_devs);
 	if (!qca) {
 		free_netdev(qcaspi_devs);
-		printk(KERN_ERR "qcaspi: Fail to retrieve private structure from net device\n");
+		dev_err(&spi_device->dev, "Fail to retrieve private structure from net device\n");
 		return -ENOMEM;
 	}
 	qca->dev = qcaspi_devs;
@@ -874,14 +886,14 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 
 	if (signature != QCASPI_GOOD_SIGNATURE) {
-		printk(KERN_ERR "qcaspi: Invalid signature (0x%04X)\n",
+		dev_err(&spi_device->dev, "Invalid signature (0x%04X)\n",
 		       signature);
 		free_netdev(qcaspi_devs);
 		return -EFAULT;
 	}
 
 	if (register_netdev(qcaspi_devs)) {
-		printk(KERN_ERR "qcaspi: Unable to register network device %s\n",
+		dev_info(&spi_device->dev, "Unable to register network device %s\n",
 		       qcaspi_devs->name);
 		free_netdev(qcaspi_devs);
 		return -EFAULT;
