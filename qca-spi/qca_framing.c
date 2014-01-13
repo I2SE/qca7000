@@ -135,7 +135,8 @@ QcaFrmFsmDecode(QcaFrmHdl *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvB
 		break;
 	default:
 		/* Receiving Ethernet frame itself. */
-		buf[frmHdl->offset++] = recvByte;
+		buf[frmHdl->offset] = recvByte;
+		frmHdl->offset++;
 		frmHdl->state--;
 		break;
 	case QCAFRM_WAIT_551:
