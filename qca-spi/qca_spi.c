@@ -111,8 +111,8 @@ static struct spi_board_info qca_spi_board_info = {
 };
 
 static struct net_device *qcaspi_devs;
-static volatile unsigned int intReq;
-static volatile unsigned int intSvc;
+static volatile unsigned int intr_req;
+static volatile unsigned int intr_svc;
 
 uint32_t
 disable_spi_interrupts(struct qcaspi *qca)
@@ -474,19 +474,19 @@ static int
 qcaspi_spi_thread(void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
-	uint32_t vInterruptCause;
+	uint32_t intr_cause;
 	uint32_t intr_enable;
 
 	netdev_info(qca->dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
-		if (intReq == intSvc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY)
+		if (intr_req == intr_svc && qca->txq.skb[qca->txq.head] == NULL && qca->sync == QCASPI_SYNC_READY)
 			schedule();
 
 		__set_current_state(TASK_RUNNING);
 
 		netdev_dbg(qca->dev, "have work to do. int: %d, tx_skb: %p\n",
-				intReq - intSvc,
+				intr_req - intr_svc,
 				qca->txq.skb[qca->txq.head]);
 
 		qcaspi_qca7k_sync(qca, QCASPI_SYNC_UPDATE);
@@ -500,14 +500,14 @@ qcaspi_spi_thread(void *data)
 			msleep(1000);
 		}
 
-		if (intSvc != intReq) {
-			intSvc = intReq;
+		if (intr_svc != intr_req) {
+			intr_svc = intr_req;
 			intr_enable = disable_spi_interrupts(qca);
-			vInterruptCause = qcaspi_read_register(qca, SPI_REG_INTR_CAUSE);
+			intr_cause = qcaspi_read_register(qca, SPI_REG_INTR_CAUSE);
 			netdev_dbg(qca->dev, "interrupts: 0x%08x\n",
-					vInterruptCause);
+					intr_cause);
 
-			if (vInterruptCause & SPI_INT_CPU_ON) {
+			if (intr_cause & SPI_INT_CPU_ON) {
 				qcaspi_qca7k_sync(qca, QCASPI_SYNC_CPUON);
 
 				/* not synced. */
@@ -518,14 +518,14 @@ qcaspi_spi_thread(void *data)
 				netif_carrier_on(qca->dev);
 			}
 
-			if (vInterruptCause & SPI_INT_RDBUF_ERR) {
+			if (intr_cause & SPI_INT_RDBUF_ERR) {
 				/* restart sync */
 				netdev_dbg(qca->dev, "===> rdbuf error!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 				continue;
 			}
 
-			if (vInterruptCause & SPI_INT_WRBUF_ERR) {
+			if (intr_cause & SPI_INT_WRBUF_ERR) {
 				/* restart sync */
 				netdev_dbg(qca->dev, "===> wrbuf error!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -534,14 +534,14 @@ qcaspi_spi_thread(void *data)
 
 			/* can only handle other interrupts if sync has occured */
 			if (qca->sync == QCASPI_SYNC_READY) {
-				if (vInterruptCause & SPI_INT_PKT_AVLBL)
+				if (intr_cause & SPI_INT_PKT_AVLBL)
 					qcaspi_receive(qca);
 			}
 
-			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, vInterruptCause);
+			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, intr_cause);
 			enable_spi_interrupts(qca, intr_enable);
 			netdev_dbg(qca->dev, "acking int: 0x%08x\n",
-					vInterruptCause);
+					intr_cause);
 		}
 
 		if (qca->txq.skb[qca->txq.head] != NULL)
@@ -557,7 +557,7 @@ static irqreturn_t
 qcaspi_intr_handler(int irq, void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
-	intReq++;
+	intr_req++;
 	if (qca->spi_thread && qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
 
@@ -571,8 +571,8 @@ qcaspi_netdev_open(struct net_device *dev)
 	struct spi_platform_data *pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
-	intReq = 0;
-	intSvc = 0;
+	intr_req = 0;
+	intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
 	QcaFrmFsmInit(&qca->lFrmHdl);
 
