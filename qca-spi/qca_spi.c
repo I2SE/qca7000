@@ -54,7 +54,7 @@
 #include "qca_7k.h"
 #include "qca_debug.h"
 
-#define QCASPI_VERSION "0.1.9-i"
+#define QCASPI_VERSION "0.2.0-i"
 #define QCASPI_MODNAME "qcaspi"
 #define QCASPI_DEF_MAC_ADDRESS "\x00\xB0\x52\xFF\xFF\x02"
 
