@@ -636,9 +636,7 @@ qcaspi_netdev_close(struct net_device *dev)
 
 	kthread_stop(qca->spi_thread);
 	qca->spi_thread = NULL;
-
 	netif_stop_queue(dev);
-
 	qcaspi_flush_txq(qca);
 
 	return 0;
@@ -813,11 +811,9 @@ qcaspi_netdev_setup(struct net_device *dev)
 	ether_setup(dev);
 
 	dev->netdev_ops = &qcaspi_netdev_ops;
-
 	dev->watchdog_timeo = QCASPI_TX_TIMEOUT;
 	dev->flags = IFF_MULTICAST;
 	dev->tx_queue_len = 100;
-
 	memcpy(dev->dev_addr, QCASPI_DEF_MAC_ADDRESS, dev->addr_len);
 
 	qca = netdev_priv(dev);
