@@ -338,7 +338,8 @@ qcaspi_receive(struct qcaspi *qca)
 		available -= bytes_read;
 
 		while ((bytes_read--) && (qca->rx_skb)) {
-			int32_t retcode = qcafrm_fsm_decode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp++);
+			int32_t retcode = qcafrm_fsm_decode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp);
+			cp++;
 			switch (retcode) {
 			case QCAFRM_GATHER:
 			case QCAFRM_NOHEAD:
