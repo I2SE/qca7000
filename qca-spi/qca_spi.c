@@ -338,7 +338,7 @@ qcaspi_receive(struct qcaspi *qca)
 		available -= bytes_read;
 
 		while ((bytes_read--) && (qca->rx_skb)) {
-			int32_t retcode = QcaFrmFsmDecode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp++);
+			int32_t retcode = qcafrm_fsm_decode(&qca->lFrmHdl, qca->rx_skb->data, skb_tailroom(qca->rx_skb), *cp++);
 			switch (retcode) {
 			case QCAFRM_GATHER:
 			case QCAFRM_NOHEAD:
@@ -574,7 +574,7 @@ qcaspi_netdev_open(struct net_device *dev)
 	intr_req = 0;
 	intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
-	QcaFrmFsmInit(&qca->lFrmHdl);
+	qcafrm_fsm_init(&qca->lFrmHdl);
 
 	netif_start_queue(qca->dev);
 
@@ -647,7 +647,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	frame_len = skb->len + pad_len;
 
 	ptmp = skb_push(skb, QCAFRM_HEADER_LEN);
-	QcaFrmCreateHeader(ptmp, frame_len);
+	qcafrm_create_header(ptmp, frame_len);
 
 	if (pad_len) {
 		ptmp = skb_put(skb, pad_len);
@@ -655,7 +655,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	}
 
 	ptmp = skb_put(skb, QCAFRM_FOOTER_LEN);
-	QcaFrmCreateFooter(ptmp);
+	qcafrm_create_footer(ptmp);
 
 	netdev_dbg(qca->dev, "Tx-ing packet: Size: 0x%08x\n",
 			skb->len);

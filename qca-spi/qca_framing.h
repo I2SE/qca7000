@@ -116,15 +116,13 @@ struct qcafrm_handle {
 	uint16_t len;
 };
 
-int32_t QcaFrmCreateHeader(uint8_t *buf, uint16_t len);
+int32_t qcafrm_create_header(uint8_t *buf, uint16_t len);
 
-int32_t QcaFrmCreateFooter(uint8_t *buf);
+int32_t qcafrm_create_footer(uint8_t *buf);
 
-void QcaFrmFsmInit(struct qcafrm_handle *frmHdl);
+void qcafrm_fsm_init(struct qcafrm_handle *frmHdl);
 
 /*====================================================================*
- *
- *   QcaFrmFsmDecode
  *
  *   Gather received bytes and try to extract a full Ethernet frame by following
  *   a simple state machine.
@@ -137,6 +135,6 @@ void QcaFrmFsmInit(struct qcafrm_handle *frmHdl);
  *
  *--------------------------------------------------------------------*/
 
-int32_t QcaFrmFsmDecode(struct qcafrm_handle *frmHdl, uint8_t *ethBuf, uint16_t ethBufLen, uint8_t recvByte);
+int32_t qcafrm_fsm_decode(struct qcafrm_handle *frmHdl, uint8_t *ethBuf, uint16_t ethBufLen, uint8_t recvByte);
 
 #endif
