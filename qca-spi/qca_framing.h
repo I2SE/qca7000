@@ -121,7 +121,7 @@ int32_t qcafrm_create_header(uint8_t *buf, uint16_t len);
 
 int32_t qcafrm_create_footer(uint8_t *buf);
 
-void qcafrm_fsm_init(struct qcafrm_handle *frmHdl);
+void qcafrm_fsm_init(struct qcafrm_handle *handle);
 
 /*====================================================================*
  *
@@ -137,6 +137,6 @@ void qcafrm_fsm_init(struct qcafrm_handle *frmHdl);
  *
  *--------------------------------------------------------------------*/
 
-int32_t qcafrm_fsm_decode(struct qcafrm_handle *frmHdl, uint8_t *ethBuf, uint16_t ethBufLen, uint8_t recvByte);
+int32_t qcafrm_fsm_decode(struct qcafrm_handle *handle, uint8_t *buf, uint16_t buf_len, uint8_t recv_byte);
 
 #endif

@@ -56,14 +56,12 @@ qcafrm_create_footer(uint8_t *buf)
 }
 
 void
-qcafrm_fsm_init(struct qcafrm_handle *frmHdl)
+qcafrm_fsm_init(struct qcafrm_handle *handle)
 {
-	frmHdl->state = QCAFRM_HW_LEN0;
+	handle->state = QCAFRM_HW_LEN0;
 }
 
 /*====================================================================*
- *
- *   QcaFrmFsmDecode
  *
  *   Gather received bytes and try to extract a full ethernet frame by
  *   following a simple state machine.
@@ -78,85 +76,85 @@ qcafrm_fsm_init(struct qcafrm_handle *frmHdl)
  *--------------------------------------------------------------------*/
 
 int32_t
-qcafrm_fsm_decode(struct qcafrm_handle *frmHdl, uint8_t *buf, uint16_t buf_len, uint8_t recvByte)
+qcafrm_fsm_decode(struct qcafrm_handle *handle, uint8_t *buf, uint16_t buf_len, uint8_t recv_byte)
 {
 	int32_t ret = QCAFRM_GATHER;
 	uint16_t len;
 
-	switch (frmHdl->state) {
+	switch (handle->state) {
 	case QCAFRM_HW_LEN0:
 	case QCAFRM_HW_LEN1:
 		/* by default, just go to next state */
-		frmHdl->state--;
+		handle->state--;
 
-		if (recvByte != 0x00) {
+		if (recv_byte != 0x00) {
 			/* first two bytes of length must be 0 */
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		}
 		break;
 	case QCAFRM_HW_LEN2:
 	case QCAFRM_HW_LEN3:
-		frmHdl->state--;
+		handle->state--;
 		break;
 	/* 4 bytes header pattern */
 	case QCAFRM_WAIT_AA1:
 	case QCAFRM_WAIT_AA2:
 	case QCAFRM_WAIT_AA3:
 	case QCAFRM_WAIT_AA4:
-		if (recvByte != 0xAA) {
+		if (recv_byte != 0xAA) {
 			ret = QCAFRM_NOHEAD;
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		} else {
-			frmHdl->state--;
+			handle->state--;
 		}
 		break;
 		/* 2 bytes length. */
 		/* Borrow offset field to hold length for now. */
 	case QCAFRM_WAIT_LEN_BYTE0:
-		frmHdl->offset = recvByte;
-		frmHdl->state--;
+		handle->offset = recv_byte;
+		handle->state--;
 		break;
 	case QCAFRM_WAIT_LEN_BYTE1:
-		frmHdl->offset = frmHdl->offset | (recvByte << 8);
-		frmHdl->state--;
+		handle->offset = handle->offset | (recv_byte << 8);
+		handle->state--;
 		break;
 	case QCAFRM_WAIT_RSVD_BYTE1:
-		frmHdl->state--;
+		handle->state--;
 		break;
 	case QCAFRM_WAIT_RSVD_BYTE2:
-		frmHdl->state--;
-		len = frmHdl->offset;
+		handle->state--;
+		len = handle->offset;
 		if (len > buf_len || len < QCAFRM_ETHMINLEN) {
 			ret = QCAFRM_INVLEN;
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		} else {
-			frmHdl->state = (enum qcafrm_state)(len + 1);
+			handle->state = (enum qcafrm_state)(len + 1);
 			/* Remaining number of bytes. */
-			frmHdl->offset = 0;
+			handle->offset = 0;
 		}
 		break;
 	default:
 		/* Receiving Ethernet frame itself. */
-		buf[frmHdl->offset] = recvByte;
-		frmHdl->offset++;
-		frmHdl->state--;
+		buf[handle->offset] = recv_byte;
+		handle->offset++;
+		handle->state--;
 		break;
 	case QCAFRM_WAIT_551:
-		if (recvByte != 0x55) {
+		if (recv_byte != 0x55) {
 			ret = QCAFRM_NOTAIL;
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		} else {
-			frmHdl->state--;
+			handle->state--;
 		}
 		break;
 	case QCAFRM_WAIT_552:
 		if (recvByte != 0x55) {
 			ret = QCAFRM_NOTAIL;
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		} else {
-			ret = frmHdl->offset;
+			ret = handle->offset;
 			/* Frame is fully received. */
-			frmHdl->state = QCAFRM_HW_LEN0;
+			handle->state = QCAFRM_HW_LEN0;
 		}
 		break;
 	}
