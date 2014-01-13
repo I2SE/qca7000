@@ -849,8 +849,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	    (qcaspi_legacy_mode < QCASPI_LEGACY_MODE_MIN) ||
 	    (qcaspi_legacy_mode > QCASPI_LEGACY_MODE_MAX) ||
 	    (qcaspi_burst_len < QCASPI_BURST_LEN_MIN) ||
-	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX))
-	{
+	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX)) {
 		dev_info(&spi_device->dev, "Invalid parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
 			qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
 		return -EINVAL;
