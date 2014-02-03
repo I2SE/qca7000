@@ -346,7 +346,7 @@ qcaspi_receive(struct qcaspi *qca)
 
 		while ((bytes_read--) && (qca->rx_skb)) {
 			int32_t retcode;
-			retcode = qcafrm_fsm_decode(&qca->lFrmHdl,
+			retcode = qcafrm_fsm_decode(&qca->frm_handle,
 					qca->rx_skb->data,
 					skb_tailroom(qca->rx_skb),
 					*cp);
@@ -602,7 +602,7 @@ qcaspi_netdev_open(struct net_device *dev)
 	intr_req = 0;
 	intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
-	qcafrm_fsm_init(&qca->lFrmHdl);
+	qcafrm_fsm_init(&qca->frm_handle);
 
 	netif_start_queue(qca->dev);
 
