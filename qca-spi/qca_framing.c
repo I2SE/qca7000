@@ -148,7 +148,7 @@ qcafrm_fsm_decode(struct qcafrm_handle *handle, uint8_t *buf, uint16_t buf_len, 
 		}
 		break;
 	case QCAFRM_WAIT_552:
-		if (recvByte != 0x55) {
+		if (recv_byte != 0x55) {
 			ret = QCAFRM_NOTAIL;
 			handle->state = QCAFRM_HW_LEN0;
 		} else {
