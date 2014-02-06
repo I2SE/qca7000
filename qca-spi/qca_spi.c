@@ -748,6 +748,7 @@ qcaspi_netdev_init(struct net_device *dev)
 
 	qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
 	if (qca->rx_skb == NULL) {
+		kfree(qca->rx_buffer);
 		netdev_info(qca->dev, "Failed to allocate RX sk_buff.\n");
 		return -ENOBUFS;
 	}
