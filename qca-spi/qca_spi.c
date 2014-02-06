@@ -831,6 +831,7 @@ static int qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	int intr_gpio = 0;
+	int fast_probe = 0;
 	uint32_t signature;
 
 	dev_info(&spi_device->dev, "SPI device probe (version %s, irq=%d)\n",
@@ -851,6 +852,11 @@ static int qca_spi_probe(struct spi_device *spi_device)
 				"burst-length", &len);
 		if (prop && len >= sizeof(*prop))
 			qcaspi_burst_len = be32_to_cpup(prop);
+
+		if (of_find_property(spi_device->dev.of_node,
+				"fast-probe", NULL)) {
+			fast_probe = 1;
+		}
 
 		intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
 				"intr-gpios", 0);
@@ -913,19 +919,21 @@ static int qca_spi_probe(struct spi_device *spi_device)
 
 	netif_carrier_off(qca->dev);
 
-	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
-	signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+	if (!fast_probe) {
+		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 
-	if (signature != QCASPI_GOOD_SIGNATURE) {
-		dev_err(&spi_device->dev, "Invalid signature (0x%04X)\n",
-		       signature);
-		free_netdev(qcaspi_devs);
-		return -EFAULT;
+		if (signature != QCASPI_GOOD_SIGNATURE) {
+			dev_err(&spi_device->dev, "Invalid signature (0x%04X)\n",
+				signature);
+			free_netdev(qcaspi_devs);
+			return -EFAULT;
+		}
 	}
 
 	if (register_netdev(qcaspi_devs)) {
 		dev_info(&spi_device->dev, "Unable to register network device %s\n",
-		       qcaspi_devs->name);
+			qcaspi_devs->name);
 		free_netdev(qcaspi_devs);
 		return -EFAULT;
 	}
