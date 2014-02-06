@@ -279,6 +279,8 @@ qcaspi_transmit(struct qcaspi *qca)
 		available -= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
 
 		/* remove the skb from the queue */
+		/* XXX After inconsistent lock states netif_tx_lock()
+		 * has been replaced by netif_tx_lock_bh() and so on. */
 		netif_tx_lock_bh(qca->dev);
 		dev_kfree_skb(qca->txq.skb[qca->txq.head]);
 		qca->txq.skb[qca->txq.head] = NULL;
@@ -400,6 +402,8 @@ qcaspi_flush_txq(struct qcaspi *qca)
 {
 	int i;
 
+	/* XXX After inconsistent lock states netif_tx_lock()
+	 * has been replaced by netif_tx_lock_bh() and so on. */
 	netif_tx_lock_bh(qca->dev);
 	for (i = 0; i < TX_QUEUE_LEN; ++i) {
 		if (qca->txq.skb[i])
