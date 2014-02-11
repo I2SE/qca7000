@@ -831,7 +831,8 @@ static const struct of_device_id qca_spi_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, qca_spi_of_match);
 
-static int qca_spi_probe(struct spi_device *spi_device)
+static int
+qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	int intr_gpio = 0;
@@ -945,7 +946,8 @@ static int qca_spi_probe(struct spi_device *spi_device)
 	return 0;
 }
 
-static int qca_spi_remove(struct spi_device *spi_device)
+static int
+qca_spi_remove(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 
