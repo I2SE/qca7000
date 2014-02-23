@@ -111,7 +111,6 @@ static struct spi_board_info qca_spi_board_info = {
 	.mode = QCASPI_BUS_MODE
 };
 
-static struct net_device *qcaspi_devs;
 static volatile unsigned int intr_req;
 static volatile unsigned int intr_svc;
 
@@ -854,6 +853,7 @@ static int
 qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
+	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
 	int fast_probe = 0;
 	u32 signature;
@@ -962,12 +962,15 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EFAULT;
 	}
 
+	spi_set_drvdata(spi_device, qcaspi_devs);
+
 	return 0;
 }
 
 static int
 qca_spi_remove(struct spi_device *spi_device)
 {
+	struct net_device *qcaspi_devs = spi_get_drvdata(spi_device);
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 
 	if (qca && qca->spi_board) {
@@ -975,6 +978,7 @@ qca_spi_remove(struct spi_device *spi_device)
 		pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 		if (pd)
 			gpio_free(pd->intr_gpio);
+		qca->dev = NULL;
 	}
 
 	unregister_netdev(qcaspi_devs);
