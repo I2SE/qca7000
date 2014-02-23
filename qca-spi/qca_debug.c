@@ -37,7 +37,7 @@ dump_reg(char *str, struct qcaspi *qca)
 {
 	struct reg {
 		char *name;
-		uint32_t address;
+		u32 address;
 	};
 
 	static struct reg regs[] = {
@@ -55,7 +55,7 @@ dump_reg(char *str, struct qcaspi *qca)
 	int i;
 
 	for (i = 0; i < (sizeof(regs) / sizeof(struct reg)); ++i) {
-		uint32_t value;
+		u32 value;
 		value = qcaspi_read_register(qca, regs[i].address);
 		netdev_dbg(qca->dev, "%s: %lu: dumpreg: %s(0x%04x)=0x%08x\n",
 			str, jiffies, regs[i].name, regs[i].address, value);

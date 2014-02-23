@@ -30,8 +30,8 @@
 
 #include "qca_framing.h"
 
-int32_t
-qcafrm_create_header(uint8_t *buf, uint16_t len)
+s32
+qcafrm_create_header(u8 *buf, u16 len)
 {
 	len = __cpu_to_le16(len);
 
@@ -39,16 +39,16 @@ qcafrm_create_header(uint8_t *buf, uint16_t len)
 	buf[1] = 0xAA;
 	buf[2] = 0xAA;
 	buf[3] = 0xAA;
-	buf[4] = (uint8_t)((len >> 0) & 0xFF);
-	buf[5] = (uint8_t)((len >> 8) & 0xFF);
+	buf[4] = (u8)((len >> 0) & 0xFF);
+	buf[5] = (u8)((len >> 8) & 0xFF);
 	buf[6] = 0;
 	buf[7] = 0;
 
 	return QCAFRM_HEADER_LEN;
 }
 
-int32_t
-qcafrm_create_footer(uint8_t *buf)
+s32
+qcafrm_create_footer(u8 *buf)
 {
 	buf[0] = 0x55;
 	buf[1] = 0x55;
@@ -75,11 +75,11 @@ qcafrm_fsm_init(struct qcafrm_handle *handle)
  *
  *--------------------------------------------------------------------*/
 
-int32_t
-qcafrm_fsm_decode(struct qcafrm_handle *handle, uint8_t *buf, uint16_t buf_len, uint8_t recv_byte)
+s32
+qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte)
 {
-	int32_t ret = QCAFRM_GATHER;
-	uint16_t len;
+	s32 ret = QCAFRM_GATHER;
+	u16 len;
 
 	switch (handle->state) {
 	case QCAFRM_HW_LEN0:

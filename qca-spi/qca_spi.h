@@ -54,8 +54,8 @@
 
 struct txq {
 	struct sk_buff *skb[TX_QUEUE_LEN];
-	uint32_t head;
-	uint32_t tail;
+	u32 head;
+	u32 tail;
 };
 
 struct qcaspi {
@@ -68,17 +68,17 @@ struct qcaspi {
 
 	struct txq txq;
 
-	uint8_t *rx_buffer;
-	uint32_t buffer_size;
-	uint8_t sync;
+	u8 *rx_buffer;
+	u32 buffer_size;
+	u8 sync;
 
 	struct qcafrm_handle frm_handle;
 	struct sk_buff *rx_skb;
 
 	/* user configurable options */
-	uint32_t clkspeed;
-	uint8_t legacy_mode;
-	uint16_t burst_len;
+	u32 clkspeed;
+	u8 legacy_mode;
+	u16 burst_len;
 };
 
 #endif

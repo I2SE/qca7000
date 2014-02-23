@@ -115,26 +115,26 @@ static struct net_device *qcaspi_devs;
 static volatile unsigned int intr_req;
 static volatile unsigned int intr_svc;
 
-uint32_t
+u32
 disable_spi_interrupts(struct qcaspi *qca)
 {
-	uint32_t old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
+	u32 old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
 	return old_value;
 }
 
-uint32_t
-enable_spi_interrupts(struct qcaspi *qca, uint32_t intr_enable)
+u32
+enable_spi_interrupts(struct qcaspi *qca, u32 intr_enable)
 {
-	uint32_t old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
+	u32 old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
 	return old_value;
 }
 
-uint32_t
-qcaspi_write_burst(struct qcaspi *qca, uint8_t *src, uint32_t len)
+u32
+qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 {
-	uint16_t cmd;
+	u16 cmd;
 	struct spi_message msg;
 	struct spi_transfer transfer[2];
 
@@ -157,8 +157,8 @@ qcaspi_write_burst(struct qcaspi *qca, uint8_t *src, uint32_t len)
 	return len;
 }
 
-uint32_t
-qcaspi_write_legacy(struct qcaspi *qca, uint8_t *src, uint32_t len)
+u32
+qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 {
 	struct spi_message msg;
 	struct spi_transfer transfer;
@@ -178,11 +178,11 @@ qcaspi_write_legacy(struct qcaspi *qca, uint8_t *src, uint32_t len)
 	return len;
 }
 
-uint32_t
-qcaspi_read_burst(struct qcaspi *qca, uint8_t *dst, uint32_t len)
+u32
+qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message msg;
-	uint16_t cmd;
+	u16 cmd;
 	struct spi_transfer transfer[2];
 
 	memset(&transfer, 0, sizeof(transfer));
@@ -204,8 +204,8 @@ qcaspi_read_burst(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 	return len;
 }
 
-uint32_t
-qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
+u32
+qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message msg;
 	struct spi_transfer transfer;
@@ -228,10 +228,10 @@ qcaspi_read_legacy(struct qcaspi *qca, uint8_t *dst, uint32_t len)
 int
 qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 {
-	uint32_t count;
-	uint32_t bytes_written;
-	uint32_t offset;
-	uint32_t len;
+	u32 count;
+	u32 bytes_written;
+	u32 offset;
+	u32 len;
 
 	len = skb->len;
 
@@ -266,7 +266,7 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 int
 qcaspi_transmit(struct qcaspi *qca)
 {
-	uint32_t available;
+	u32 available;
 
 	available = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
 
@@ -298,10 +298,10 @@ qcaspi_transmit(struct qcaspi *qca)
 int
 qcaspi_receive(struct qcaspi *qca)
 {
-	uint32_t available;
-	uint32_t bytes_read;
-	uint32_t count;
-	uint8_t *cp;
+	u32 available;
+	u32 bytes_read;
+	u32 count;
+	u8 *cp;
 
 	/* Allocate rx SKB if we don't have one available. */
 	if (qca->rx_skb == NULL) {
@@ -348,7 +348,7 @@ qcaspi_receive(struct qcaspi *qca)
 		available -= bytes_read;
 
 		while ((bytes_read--) && (qca->rx_skb)) {
-			int32_t retcode;
+			s32 retcode;
 			retcode = qcafrm_fsm_decode(&qca->frm_handle,
 					qca->rx_skb->data,
 					skb_tailroom(qca->rx_skb),
@@ -419,10 +419,10 @@ qcaspi_flush_txq(struct qcaspi *qca)
 void
 qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 {
-	uint32_t signature;
-	uint32_t spi_config;
-	uint32_t wrbuf_space;
-	static uint32_t reset_count;
+	u32 signature;
+	u32 spi_config;
+	u32 wrbuf_space;
+	static u32 reset_count;
 
 	if (event == QCASPI_SYNC_CPUON) {
 		/* Read signature twice, if not valid
@@ -496,8 +496,8 @@ static int
 qcaspi_spi_thread(void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
-	uint32_t intr_cause;
-	uint32_t intr_enable;
+	u32 intr_cause;
+	u32 intr_enable;
 
 	netdev_info(qca->dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
@@ -650,12 +650,12 @@ qcaspi_netdev_close(struct net_device *dev)
 netdev_tx_t
 qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 {
-	uint32_t frame_len;
-	uint8_t *ptmp;
+	u32 frame_len;
+	u8 *ptmp;
 	struct qcaspi *qca = netdev_priv(dev);
-	uint32_t new_tail;
+	u32 new_tail;
 	struct sk_buff *tskb;
-	uint8_t pad_len = 0;
+	u8 pad_len = 0;
 
 	if (skb->len < QCAFRM_ETHMINLEN)
 		pad_len = QCAFRM_ETHMINLEN - skb->len;
@@ -856,7 +856,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct qcaspi *qca = NULL;
 	int intr_gpio = 0;
 	int fast_probe = 0;
-	uint32_t signature;
+	u32 signature;
 
 	dev_info(&spi_device->dev, "SPI device probe (version %s, irq=%d)\n",
 		QCASPI_VERSION, spi_device->irq);

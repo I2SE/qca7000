@@ -111,15 +111,15 @@ struct qcafrm_handle {
 	enum qcafrm_state state;
 
 	/* Offset in buffer (borrowed for length too) */
-	int16_t offset;
+	s16 offset;
 
 	/* Frame length as kept by this module */
-	uint16_t len;
+	u16 len;
 };
 
-int32_t qcafrm_create_header(uint8_t *buf, uint16_t len);
+s32 qcafrm_create_header(u8 *buf, u16 len);
 
-int32_t qcafrm_create_footer(uint8_t *buf);
+s32 qcafrm_create_footer(u8 *buf);
 
 void qcafrm_fsm_init(struct qcafrm_handle *handle);
 
@@ -137,6 +137,6 @@ void qcafrm_fsm_init(struct qcafrm_handle *handle);
  *
  *--------------------------------------------------------------------*/
 
-int32_t qcafrm_fsm_decode(struct qcafrm_handle *handle, uint8_t *buf, uint16_t buf_len, uint8_t recv_byte);
+s32 qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte);
 
 #endif

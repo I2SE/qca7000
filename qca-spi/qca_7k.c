@@ -33,11 +33,11 @@
 
 #include "qca_7k.h"
 
-uint16_t
-qcaspi_read_register(struct qcaspi *qca, uint16_t reg)
+u16
+qcaspi_read_register(struct qcaspi *qca, u16 reg)
 {
-	uint16_t tx_data;
-	uint16_t rx_data;
+	u16 tx_data;
+	u16 rx_data;
 	struct spi_transfer transfer[2];
 	struct spi_message msg;
 
@@ -68,9 +68,9 @@ qcaspi_read_register(struct qcaspi *qca, uint16_t reg)
 }
 
 void
-qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value)
+qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 {
-	uint16_t tx_data[2];
+	u16 tx_data[2];
 	struct spi_transfer transfer[2];
 	struct spi_message msg;
 
@@ -100,7 +100,7 @@ qcaspi_write_register(struct qcaspi *qca, uint16_t reg, uint16_t value)
 }
 
 int
-qcaspi_tx_cmd(struct qcaspi *qca, uint16_t cmd)
+qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 {
 	struct spi_message msg;
 	struct spi_transfer transfer;
