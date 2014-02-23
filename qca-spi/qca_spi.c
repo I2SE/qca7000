@@ -111,9 +111,6 @@ static struct spi_board_info qca_spi_board_info = {
 	.mode = QCASPI_BUS_MODE
 };
 
-static volatile unsigned int intr_req;
-static volatile unsigned int intr_svc;
-
 u32
 disable_spi_interrupts(struct qcaspi *qca)
 {
@@ -501,7 +498,7 @@ qcaspi_spi_thread(void *data)
 	netdev_info(qca->dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
-		if ((intr_req == intr_svc) &&
+		if ((qca->intr_req == qca->intr_svc) &&
 		    (qca->txq.skb[qca->txq.head] == NULL) &&
 		    (qca->sync == QCASPI_SYNC_READY))
 			schedule();
@@ -509,7 +506,7 @@ qcaspi_spi_thread(void *data)
 		__set_current_state(TASK_RUNNING);
 
 		netdev_dbg(qca->dev, "have work to do. int: %d, tx_skb: %p\n",
-				intr_req - intr_svc,
+				qca->intr_req - qca->intr_svc,
 				qca->txq.skb[qca->txq.head]);
 
 		qcaspi_qca7k_sync(qca, QCASPI_SYNC_UPDATE);
@@ -523,8 +520,8 @@ qcaspi_spi_thread(void *data)
 			msleep(1000);
 		}
 
-		if (intr_svc != intr_req) {
-			intr_svc = intr_req;
+		if (qca->intr_svc != qca->intr_req) {
+			qca->intr_svc = qca->intr_req;
 			intr_enable = disable_spi_interrupts(qca);
 			intr_cause = qcaspi_read_register(qca,
 					SPI_REG_INTR_CAUSE);
@@ -586,7 +583,7 @@ static irqreturn_t
 qcaspi_intr_handler(int irq, void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
-	intr_req++;
+	qca->intr_req++;
 	if (qca->spi_thread &&
 		qca->spi_thread->state != TASK_RUNNING)
 		wake_up_process(qca->spi_thread);
@@ -603,8 +600,8 @@ qcaspi_netdev_open(struct net_device *dev)
 	pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
-	intr_req = 0;
-	intr_svc = 0;
+	qca->intr_req = 0;
+	qca->intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
 	qcafrm_fsm_init(&qca->frm_handle);
 

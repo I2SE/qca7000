@@ -75,6 +75,9 @@ struct qcaspi {
 	struct qcafrm_handle frm_handle;
 	struct sk_buff *rx_skb;
 
+	volatile unsigned int intr_req;
+	volatile unsigned int intr_svc;
+
 	/* user configurable options */
 	u32 clkspeed;
 	u8 legacy_mode;
