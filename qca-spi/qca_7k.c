@@ -45,7 +45,7 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg)
 
 	spi_message_init(&msg);
 
-	tx_data = __cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_INTERNAL | reg);
+	tx_data = cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_INTERNAL | reg);
 
 	transfer[0].tx_buf = &tx_data;
 	transfer[0].len = QCASPI_CMD_LEN;
@@ -64,7 +64,7 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg)
 		spi_sync(qca->spi_device, &msg);
 	}
 
-	return __be16_to_cpu(rx_data);
+	return be16_to_cpu(rx_data);
 }
 
 void
@@ -78,8 +78,8 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 
 	spi_message_init(&msg);
 
-	tx_data[0] = __cpu_to_be16(QCA7K_SPI_WRITE | QCA7K_SPI_INTERNAL | reg);
-	tx_data[1] = __cpu_to_be16(value);
+	tx_data[0] = cpu_to_be16(QCA7K_SPI_WRITE | QCA7K_SPI_INTERNAL | reg);
+	tx_data[1] = cpu_to_be16(value);
 
 	transfer[0].tx_buf = &tx_data[0];
 	transfer[0].len = QCASPI_CMD_LEN;
@@ -113,7 +113,7 @@ qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 	transfer.tx_buf = &cmd;
 	spi_message_add_tail(&transfer, &msg);
 
-	cmd = __cpu_to_be16(cmd);
+	cmd = cpu_to_be16(cmd);
 	spi_sync(qca->spi_device, &msg);
 
 	if (msg.actual_length != sizeof(cmd))

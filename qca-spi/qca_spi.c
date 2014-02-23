@@ -141,7 +141,7 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
 
-	cmd = __cpu_to_be16(QCA7K_SPI_WRITE | QCA7K_SPI_EXTERNAL);
+	cmd = cpu_to_be16(QCA7K_SPI_WRITE | QCA7K_SPI_EXTERNAL);
 	transfer[0].tx_buf = &cmd;
 	transfer[0].len = QCASPI_CMD_LEN;
 	transfer[1].tx_buf = src;
@@ -188,7 +188,7 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
 
-	cmd = __cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_EXTERNAL);
+	cmd = cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_EXTERNAL);
 	transfer[0].tx_buf = &cmd;
 	transfer[0].len = QCASPI_CMD_LEN;
 	transfer[1].rx_buf = dst;

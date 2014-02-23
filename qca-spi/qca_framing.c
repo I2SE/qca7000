@@ -33,7 +33,7 @@
 s32
 qcafrm_create_header(u8 *buf, u16 len)
 {
-	len = __cpu_to_le16(len);
+	len = cpu_to_le16(len);
 
 	buf[0] = 0xAA;
 	buf[1] = 0xAA;
