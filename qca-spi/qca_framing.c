@@ -30,7 +30,7 @@
 
 #include "qca_framing.h"
 
-s32
+u16
 qcafrm_create_header(u8 *buf, u16 len)
 {
 	len = cpu_to_le16(len);
@@ -47,7 +47,7 @@ qcafrm_create_header(u8 *buf, u16 len)
 	return QCAFRM_HEADER_LEN;
 }
 
-s32
+u16
 qcafrm_create_footer(u8 *buf)
 {
 	buf[0] = 0x55;
