@@ -271,8 +271,8 @@ qcaspi_transmit(struct qcaspi *qca)
 		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1)
 			return -1;
 
-		qca->stats.tx_packets++;
-		qca->stats.tx_bytes += qca->txq.skb[qca->txq.head]->len;
+		qca->dev->stats.tx_packets++;
+		qca->dev->stats.tx_bytes += qca->txq.skb[qca->txq.head]->len;
 		available -= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
 
 		/* remove the skb from the queue */
@@ -356,18 +356,18 @@ qcaspi_receive(struct qcaspi *qca)
 				break;
 			case QCAFRM_NOTAIL:
 				netdev_dbg(qca->dev, "no RX tail\n");
-				qca->stats.rx_errors++;
-				qca->stats.rx_dropped++;
+				qca->dev->stats.rx_errors++;
+				qca->dev->stats.rx_dropped++;
 				break;
 			case QCAFRM_INVLEN:
 				netdev_dbg(qca->dev, "invalid RX length\n");
-				qca->stats.rx_errors++;
-				qca->stats.rx_dropped++;
+				qca->dev->stats.rx_errors++;
+				qca->dev->stats.rx_dropped++;
 				break;
 			default:
 				qca->rx_skb->dev = qca->dev;
-				qca->stats.rx_packets++;
-				qca->stats.rx_bytes += retcode;
+				qca->dev->stats.rx_packets++;
+				qca->dev->stats.rx_bytes += retcode;
 				skb_put(qca->rx_skb, retcode);
 				qca->rx_skb->protocol = eth_type_trans(
 						qca->rx_skb, qca->rx_skb->dev);
@@ -377,7 +377,7 @@ qcaspi_receive(struct qcaspi *qca)
 						VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->dev, "out of RX resources\n");
-					qca->stats.rx_errors++;
+					qca->dev->stats.rx_errors++;
 					break;
 				}
 			}
@@ -715,7 +715,7 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 	struct qcaspi *qca = netdev_priv(dev);
 	netdev_info(qca->dev, "Transmit timeout at %ld, latency %ld\n",
 			jiffies, jiffies - dev->trans_start);
-	qca->stats.tx_errors++;
+	qca->dev->stats.tx_errors++;
 	/* wake the queue if there is room */
 	if (qca->txq.skb[qca->txq.tail] == NULL)
 		netif_wake_queue(dev);
