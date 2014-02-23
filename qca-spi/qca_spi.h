@@ -60,7 +60,6 @@ struct txq {
 
 struct qcaspi {
 	struct net_device *dev;
-	struct net_device_stats stats;
 	struct spi_board_info *spi_board;
 	struct spi_device *spi_device;
 	struct spi_master *spi_master;

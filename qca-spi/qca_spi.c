@@ -721,13 +721,6 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 		netif_wake_queue(dev);
 }
 
-struct net_device_stats *
-qcaspi_netdev_get_stats(struct net_device *dev)
-{
-	struct qcaspi *qca = netdev_priv(dev);
-	return &qca->stats;
-}
-
 static int
 qcaspi_netdev_init(struct net_device *dev)
 {
@@ -816,7 +809,6 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_open = qcaspi_netdev_open,
 	.ndo_stop = qcaspi_netdev_close,
 	.ndo_start_xmit = qcaspi_netdev_xmit,
-	.ndo_get_stats = qcaspi_netdev_get_stats,
 	.ndo_change_mtu = qcaspi_netdev_change_mtu,
 	.ndo_set_mac_address = qcaspi_netdev_set_mac_address,
 	.ndo_tx_timeout = qcaspi_netdev_tx_timeout,
