@@ -39,8 +39,8 @@ qcafrm_create_header(u8 *buf, u16 len)
 	buf[1] = 0xAA;
 	buf[2] = 0xAA;
 	buf[3] = 0xAA;
-	buf[4] = (u8)((len >> 0) & 0xFF);
-	buf[5] = (u8)((len >> 8) & 0xFF);
+	buf[4] = len & 0xff;
+	buf[5] = (len >>8) & 0xff;
 	buf[6] = 0;
 	buf[7] = 0;
 
