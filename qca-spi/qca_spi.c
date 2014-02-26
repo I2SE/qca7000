@@ -967,7 +967,6 @@ qca_spi_remove(struct spi_device *spi_device)
 		pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 		if (pd)
 			gpio_free(pd->intr_gpio);
-		qca->dev = NULL;
 	}
 
 	unregister_netdev(qcaspi_devs);
