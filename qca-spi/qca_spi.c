@@ -846,43 +846,45 @@ qca_spi_probe(struct spi_device *spi_device)
 	int intr_gpio = 0;
 	int fast_probe = 0;
 	u32 signature;
+	const __be32 *prop;
+	int len;
+	int ret;
+	
+	if (!spi_device->dev.of_node) {
+		dev_err(&spi_device->dev, "Missing device tree\n");
+		return -EINVAL;
+	}
 
 	dev_info(&spi_device->dev, "SPI device probe (version %s, irq=%d)\n",
 		QCASPI_VERSION, spi_device->irq);
 
 	/* TODO: Make module parameter higher prio as device tree */
-	if (spi_device->dev.of_node) {
-		const __be32 *prop;
-		int len;
-		int ret;
+	prop = of_get_property(spi_device->dev.of_node,
+			"legacy-mode", &len);
+	if (prop && len >= sizeof(*prop))
+		qcaspi_legacy_mode = be32_to_cpup(prop);
 
-		prop = of_get_property(spi_device->dev.of_node,
-				"legacy-mode", &len);
-		if (prop && len >= sizeof(*prop))
-			qcaspi_legacy_mode = be32_to_cpup(prop);
+	prop = of_get_property(spi_device->dev.of_node,
+			"burst-length", &len);
+	if (prop && len >= sizeof(*prop))
+		qcaspi_burst_len = be32_to_cpup(prop);
 
-		prop = of_get_property(spi_device->dev.of_node,
-				"burst-length", &len);
-		if (prop && len >= sizeof(*prop))
-			qcaspi_burst_len = be32_to_cpup(prop);
+	if (of_find_property(spi_device->dev.of_node,
+			"fast-probe", NULL)) {
+		fast_probe = 1;
+	}
 
-		if (of_find_property(spi_device->dev.of_node,
-				"fast-probe", NULL)) {
-			fast_probe = 1;
-		}
+	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
+			"intr-gpios", 0);
 
-		intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
-				"intr-gpios", 0);
+	if (gpio_is_valid(intr_gpio)) {
+		ret = gpio_request_one(intr_gpio, GPIOF_IN,
+				"qca7k_intr0");
 
-		if (gpio_is_valid(intr_gpio)) {
-			ret = gpio_request_one(intr_gpio, GPIOF_IN,
-					"qca7k_intr0");
-
-			if (ret < 0) {
-				dev_err(&spi_device->dev,
-				"Failed to request interrupt gpio: %d!\n",
-				ret);
-			}
+		if (ret < 0) {
+			dev_err(&spi_device->dev,
+			"Failed to request interrupt gpio: %d!\n",
+			ret);
 		}
 	}
 
