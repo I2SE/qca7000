@@ -736,7 +736,7 @@ qcaspi_netdev_init(struct net_device *dev)
 	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN +
 		QCAFRM_FOOTER_LEN + 4) * 4;
 
-	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_ATOMIC);
+	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_KERNEL);
 	if (!qca->rx_buffer)
 		return -ENOBUFS;
 
