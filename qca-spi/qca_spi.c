@@ -443,7 +443,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		}
 	}
 
-	if (qca->sync == QCASPI_SYNC_READY) {
+	switch (qca->sync) {
+	case QCASPI_SYNC_READY:
 		/* Don't check signature after sync in burst mode. */
 		if (!qca->legacy_mode)
 			return;
@@ -455,9 +456,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 			/* don't reset right away */
 			return;
 		}
-	}
-
-	if (qca->sync == QCASPI_SYNC_UNKNOWN) {
+		break;
+	case QCASPI_SYNC_UNKNOWN:
 		/* Read signature, if not valid stay in unknown state */
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
@@ -473,10 +473,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 
 		qca->sync = QCASPI_SYNC_RESET;
 		reset_count = 0;
-		return;
-	}
-
-	if (qca->sync == QCASPI_SYNC_RESET) {
+		break;
+	case QCASPI_SYNC_RESET:
 		++reset_count;
 		netdev_dbg(qca->dev, "sync: waiting for CPU on, count %d.\n",
 				reset_count);
@@ -485,6 +483,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 			qca->sync = QCASPI_SYNC_UNKNOWN;
 			netdev_dbg(qca->dev, "sync: reset timeout, restarting process.\n");
 		}
+		break;
 	}
 }
 
