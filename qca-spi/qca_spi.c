@@ -631,12 +631,13 @@ qcaspi_netdev_close(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 
+	netif_stop_queue(dev);
+
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
 	free_irq(dev->irq, qca);
 
 	kthread_stop(qca->spi_thread);
 	qca->spi_thread = NULL;
-	netif_stop_queue(dev);
 	qcaspi_flush_txq(qca);
 
 	return 0;
