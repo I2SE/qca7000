@@ -844,10 +844,9 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
-	int fast_probe = 0;
+	bool fast_probe = false;
 	u32 signature;
-	const __be32 *prop;
-	int len;
+	u16 prop = 0;
 	int ret;
 	
 	if (!spi_device->dev.of_node) {
@@ -859,19 +858,17 @@ qca_spi_probe(struct spi_device *spi_device)
 		QCASPI_VERSION, spi_device->irq);
 
 	/* TODO: Make module parameter higher prio as device tree */
-	prop = of_get_property(spi_device->dev.of_node,
-			"legacy-mode", &len);
-	if (prop && len >= sizeof(*prop))
-		qcaspi_legacy_mode = be32_to_cpup(prop);
+	if (of_property_read_u16(spi_device->dev.of_node,
+		"legacy-mode", &prop) == 0)
+		qcaspi_legacy_mode = prop;
 
-	prop = of_get_property(spi_device->dev.of_node,
-			"burst-length", &len);
-	if (prop && len >= sizeof(*prop))
-		qcaspi_burst_len = be32_to_cpup(prop);
+	if (of_property_read_u16(spi_device->dev.of_node,
+		"burst-length", &prop) == 0)
+		qcaspi_burst_len = prop;
 
 	if (of_find_property(spi_device->dev.of_node,
 			"fast-probe", NULL)) {
-		fast_probe = 1;
+		fast_probe = true;
 	}
 
 	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
