@@ -604,8 +604,6 @@ qcaspi_netdev_open(struct net_device *dev)
 	qca->sync = QCASPI_SYNC_UNKNOWN;
 	qcafrm_fsm_init(&qca->frm_handle);
 
-	netif_start_queue(qca->dev);
-
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
 			qca, QCASPI_MODNAME);
 
@@ -622,6 +620,8 @@ qcaspi_netdev_open(struct net_device *dev)
 		netdev_err(qca->dev, "Fail to request irq %d\n",
 				dev->irq);
 	}
+
+	netif_start_queue(qca->dev);
 
 	return 0;
 }
