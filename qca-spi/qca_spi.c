@@ -600,6 +600,14 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
+	if (pd == NULL)
+		return -1;
+
+	dev->irq = gpio_to_irq(pd->intr_gpio);
+
+	if (dev->irq < 0)
+		return dev->irq;
+
 	memset(&qca->txq, 0, sizeof(qca->txq));
 	qca->intr_req = 0;
 	qca->intr_svc = 0;
@@ -608,14 +616,6 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
 			qca, QCASPI_MODNAME);
-
-	if (pd == NULL)
-		return -1;
-
-	dev->irq = gpio_to_irq(pd->intr_gpio);
-
-	if (dev->irq < 0)
-		return dev->irq;
 
 	ret = request_irq(dev->irq, qcaspi_intr_handler,
 						IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca);
