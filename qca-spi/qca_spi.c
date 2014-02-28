@@ -596,6 +596,7 @@ qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	struct spi_platform_data *pd;
+	int ret = 0;
 
 	pd = (struct spi_platform_data *) qca->spi_board->platform_data;
 
@@ -616,10 +617,13 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (dev->irq < 0)
 		return dev->irq;
 
-	if (request_irq(dev->irq, qcaspi_intr_handler,
-				  IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca)) {
-		netdev_err(qca->dev, "Fail to request irq %d\n",
-				dev->irq);
+	ret = request_irq(dev->irq, qcaspi_intr_handler,
+						IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca);
+	if (ret) {
+		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
+				QCASPI_MODNAME, dev->irq, ret);
+		kthread_stop(qca->spi_thread);
+		return ret;
 	}
 
 	netif_start_queue(qca->dev);
