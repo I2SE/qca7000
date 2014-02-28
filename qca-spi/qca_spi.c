@@ -615,7 +615,7 @@ qcaspi_netdev_open(struct net_device *dev)
 	qcafrm_fsm_init(&qca->frm_handle);
 
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
-			qca, QCASPI_MODNAME);
+			qca, "%s", dev->name);
 
 	if (IS_ERR(qca->spi_thread))
 	{
@@ -625,7 +625,7 @@ qcaspi_netdev_open(struct net_device *dev)
 	}
 
 	ret = request_irq(dev->irq, qcaspi_intr_handler,
-						IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca);
+						IRQF_TRIGGER_RISING, dev->name, qca);
 	if (ret) {
 		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
 				QCASPI_MODNAME, dev->irq, ret);
