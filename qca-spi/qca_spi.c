@@ -617,6 +617,13 @@ qcaspi_netdev_open(struct net_device *dev)
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
 			qca, QCASPI_MODNAME);
 
+	if (IS_ERR(qca->spi_thread))
+	{
+		netdev_err(dev, "%s: unable to start kernel thread.\n",
+				QCASPI_MODNAME);
+		return PTR_ERR(qca->spi_thread);
+	}
+
 	ret = request_irq(dev->irq, qcaspi_intr_handler,
 						IRQF_TRIGGER_RISING, QCASPI_MODNAME, qca);
 	if (ret) {
