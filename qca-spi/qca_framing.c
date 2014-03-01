@@ -1,5 +1,4 @@
-/*====================================================================*
- *
+/*
  *   Copyright (c) 2011, 2012, Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
  *
@@ -16,15 +15,11 @@
  *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   Atheros ethernet framing. Every Ethernet frame is surrounded
+/*   Atheros ethernet framing. Every Ethernet frame is surrounded
  *   by an atheros frame while transmitted over a serial channel;
- *
- *--------------------------------------------------------------------*/
+ */
 
 #include <linux/kernel.h>
 #include <linux/if_ether.h>
@@ -41,7 +36,7 @@ qcafrm_create_header(u8 *buf, u16 len)
 	buf[2] = 0xAA;
 	buf[3] = 0xAA;
 	buf[4] = len & 0xff;
-	buf[5] = (len >>8) & 0xff;
+	buf[5] = (len >> 8) & 0xff;
 	buf[6] = 0;
 	buf[7] = 0;
 
@@ -62,9 +57,7 @@ qcafrm_fsm_init(struct qcafrm_handle *handle)
 	handle->state = QCAFRM_HW_LEN0;
 }
 
-/*====================================================================*
- *
- *   Gather received bytes and try to extract a full ethernet frame by
+/*   Gather received bytes and try to extract a full ethernet frame by
  *   following a simple state machine.
  *
  * Return:   QCAFRM_GATHER       No ethernet frame fully received yet.
@@ -73,8 +66,7 @@ qcafrm_fsm_init(struct qcafrm_handle *handle)
  *           QCAFRM_NOTAIL       Footer expected but not found.
  *           > 0                 Number of byte in the fully received
  *                               Ethernet frame
- *
- *--------------------------------------------------------------------*/
+ */
 
 s32
 qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte)

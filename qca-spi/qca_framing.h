@@ -1,5 +1,4 @@
-/*====================================================================*
- *
+/*
  *   Copyright (c) 2011, 2012, Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
  *
@@ -16,16 +15,11 @@
  *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   Atheros Ethernet framing. Every Ethernet frame is surrounded by an atheros
+/*   Atheros Ethernet framing. Every Ethernet frame is surrounded by an atheros
  *   frame while transmitted over a serial channel.
- *
- *
- *--------------------------------------------------------------------*/
+ */
 
 #ifndef _QCAFRAMING_H
 #define _QCAFRAMING_H
@@ -93,19 +87,16 @@ enum qcafrm_state {
 	QCAFRM_WAIT_RSVD_BYTE2 = QCAFRM_WAIT_AA4 - 4,
 
 	/*  The frame length is used as the state until
-	 *  the end of the Ethernet frame */
-	/*  Waiting for first 0x55 of footer */
+	 *  the end of the Ethernet frame
+	 *  Waiting for first 0x55 of footer
+	 */
 	QCAFRM_WAIT_551 = 1,
 
 	/*  Waiting for second 0x55 of footer */
 	QCAFRM_WAIT_552 = QCAFRM_WAIT_551 - 1
 };
 
-/*====================================================================*
- *
- *   Structure to maintain the frame decoding during reception.
- *
- *--------------------------------------------------------------------*/
+/*   Structure to maintain the frame decoding during reception. */
 
 struct qcafrm_handle {
 	/*  Current decoding state */
@@ -124,9 +115,7 @@ u16 qcafrm_create_footer(u8 *buf);
 
 void qcafrm_fsm_init(struct qcafrm_handle *handle);
 
-/*====================================================================*
- *
- *   Gather received bytes and try to extract a full Ethernet frame
+/*   Gather received bytes and try to extract a full Ethernet frame
  *   by following a simple state machine.
  *
  * Return:   QCAFRM_GATHER       No Ethernet frame fully received yet.
@@ -135,8 +124,7 @@ void qcafrm_fsm_init(struct qcafrm_handle *handle);
  *           QCAFRM_NOTAIL       Footer expected but not found.
  *           > 0                 Number of byte in the fully received
  *                               Ethernet frame
- *
- *--------------------------------------------------------------------*/
+ */
 
 s32 qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte);
 

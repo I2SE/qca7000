@@ -1,4 +1,4 @@
-/*====================================================================*
+/*
  *
  *   Copyright (c) 2011, 2012, Qualcomm Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
@@ -17,14 +17,11 @@
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   This module implements the Qualcomm Atheros SPI protocol for
+/*   This module implements the Qualcomm Atheros SPI protocol for
  *   kernel-based SPI device.
- *
- *--------------------------------------------------------------------*/
+ */
 
 #include <linux/version.h>
 #include <linux/module.h>
@@ -56,7 +53,7 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg)
 	spi_message_add_tail(&transfer[0], &msg);
 	if (qca->legacy_mode) {
 		spi_sync(qca->spi_device, &msg);
-		spi_message_init(&msg);	
+		spi_message_init(&msg);
 	}
 	spi_message_add_tail(&transfer[1], &msg);
 	spi_sync(qca->spi_device, &msg);
@@ -84,9 +81,9 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 	transfer[1].len = QCASPI_CMD_LEN;
 
 	spi_message_add_tail(&transfer[0], &msg);
-	if (qca->legacy_mode) {		
+	if (qca->legacy_mode) {
 		spi_sync(qca->spi_device, &msg);
-		spi_message_init(&msg);	
+		spi_message_init(&msg);
 	}
 	spi_message_add_tail(&transfer[1], &msg);
 	spi_sync(qca->spi_device, &msg);

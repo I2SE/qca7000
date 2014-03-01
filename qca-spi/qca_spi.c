@@ -1,6 +1,4 @@
-/*====================================================================*
- *
- *
+/*
  *   Copyright (c) 2011, 2012, Qualcomm Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
  *
@@ -17,16 +15,12 @@
  *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   This module implements the Qualcomm Atheros SPI protocol for
+/*   This module implements the Qualcomm Atheros SPI protocol for
  *   kernel-based SPI device; it is essentially an Ethernet-to-SPI
  *   serial converter;
- *
- *--------------------------------------------------------------------*/
+ */
 
 #include <linux/errno.h>
 #include <linux/etherdevice.h>
@@ -62,10 +56,7 @@
 
 #define MAX_DMA_BURST_LEN 5000
 
-/*--------------------------------------------------------------------*
- *   Modules parameters
- *--------------------------------------------------------------------*/
-
+/*   Modules parameters     */
 #define QCASPI_CLK_SPEED_MIN 1000000
 #define QCASPI_CLK_SPEED_MAX 16000000
 #define QCASPI_CLK_SPEED 8000000
@@ -85,10 +76,7 @@ static int qcaspi_burst_len = MAX_DMA_BURST_LEN;
 module_param(qcaspi_burst_len, int, 0);
 MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000.");
 
-/*--------------------------------------------------------------------*
- *   SPI bus id parameter
- *--------------------------------------------------------------------*/
-
+/*   SPI bus id parameter   */
 #define QCASPI_BUS_ID 1
 #define QCASPI_BUS_MODE (SPI_CPOL | SPI_CPHA)
 #define QCASPI_CS_ID 0
@@ -283,7 +271,8 @@ qcaspi_transmit(struct qcaspi *qca)
 
 		/* remove the skb from the queue */
 		/* XXX After inconsistent lock states netif_tx_lock()
-		 * has been replaced by netif_tx_lock_bh() and so on. */
+		 * has been replaced by netif_tx_lock_bh() and so on.
+		 */
 		netif_tx_lock_bh(qca->dev);
 		dev_kfree_skb(qca->txq.skb[qca->txq.head]);
 		qca->txq.skb[qca->txq.head] = NULL;
@@ -393,12 +382,9 @@ qcaspi_receive(struct qcaspi *qca)
 	return 0;
 }
 
-/*====================================================================*
- *
- * Flush the tx queue. This function is only safe to
- * call from the qcaspi_spi_thread.
- *
- *--------------------------------------------------------------------*/
+/*   Flush the tx queue. This function is only safe to
+ *   call from the qcaspi_spi_thread.
+ */
 
 void
 qcaspi_flush_txq(struct qcaspi *qca)
@@ -406,7 +392,8 @@ qcaspi_flush_txq(struct qcaspi *qca)
 	int i;
 
 	/* XXX After inconsistent lock states netif_tx_lock()
-	 * has been replaced by netif_tx_lock_bh() and so on. */
+	 * has been replaced by netif_tx_lock_bh() and so on.
+	 */
 	netif_tx_lock_bh(qca->dev);
 	for (i = 0; i < TX_QUEUE_LEN; ++i) {
 		if (qca->txq.skb[i])
@@ -428,7 +415,8 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 
 	if (event == QCASPI_SYNC_CPUON) {
 		/* Read signature twice, if not valid
-		 * go back to unknown state. */
+		 * go back to unknown state.
+		 */
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
@@ -562,7 +550,8 @@ qcaspi_spi_thread(void *data)
 			}
 
 			/* can only handle other interrupts
-			 * if sync has occured */
+			 * if sync has occured
+			 */
 			if (qca->sync == QCASPI_SYNC_READY) {
 				if (intr_cause & SPI_INT_PKT_AVLBL)
 					qcaspi_receive(qca);
@@ -622,15 +611,14 @@ qcaspi_netdev_open(struct net_device *dev)
 	qca->spi_thread = kthread_run((void *)qcaspi_spi_thread,
 			qca, "%s", dev->name);
 
-	if (IS_ERR(qca->spi_thread))
-	{
+	if (IS_ERR(qca->spi_thread)) {
 		netdev_err(dev, "%s: unable to start kernel thread.\n",
 				QCASPI_MODNAME);
 		return PTR_ERR(qca->spi_thread);
 	}
 
 	ret = request_irq(dev->irq, qcaspi_intr_handler,
-						IRQF_TRIGGER_RISING, dev->name, qca);
+				IRQF_TRIGGER_RISING, dev->name, qca);
 	if (ret) {
 		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
 				QCASPI_MODNAME, dev->irq, ret);
@@ -865,7 +853,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	u32 signature;
 	u16 prop = 0;
 	int ret;
-	
+
 	if (!spi_device->dev.of_node) {
 		dev_err(&spi_device->dev, "Missing device tree\n");
 		return -EINVAL;

@@ -1,5 +1,4 @@
-/*====================================================================*
- *
+/*
  *   Copyright (c) 2011, 2012, Qualcomm Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
  *
@@ -16,17 +15,13 @@
  *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   Qualcomm Atheros SPI register definition.
+/*   Qualcomm Atheros SPI register definition.
  *
  *   This module is designed to define the Qualcomm Atheros SPI register
  *   placeholders;
- *
- *--------------------------------------------------------------------*/
+ */
 
 #ifndef QCA_SPI_HEADER
 #define QCA_SPI_HEADER

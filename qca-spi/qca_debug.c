@@ -1,5 +1,4 @@
-/*====================================================================*
- *
+/*
  *   Copyright (c) 2011, 2012, Qualcomm Atheros Communications Inc.
  *   Copyright (c) 2014, I2SE GmbH
  *
@@ -16,23 +15,17 @@
  *   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  *   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  *   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- *--------------------------------------------------------------------*/
+ */
 
-/*====================================================================*
- *
- *   This file contains debugging routines for use in the QCA7K driver.
- *
- *--------------------------------------------------------------------*/
+/*   This file contains debugging routines for use in the QCA7K driver.
+ */
 
 #include <linux/types.h>
 
 #include "qca_spi.h"
 #include "qca_7k.h"
 
-/*
- * Dumps the contents of all SPI slave registers.
- */
+/*   Dumps the contents of all SPI slave registers.        */
 void
 dump_reg(char *str, struct qcaspi *qca)
 {
