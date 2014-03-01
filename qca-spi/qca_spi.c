@@ -264,17 +264,22 @@ int
 qcaspi_transmit(struct qcaspi *qca)
 {
 	u32 available;
+	u32 pkt_len;
 
 	available = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
 
-	while (qca->txq.skb[qca->txq.head] &&
-		available >= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN) {
+	while (qca->txq.skb[qca->txq.head]) {
+		pkt_len = qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
+
+		if (available < pkt_len)
+			break;
+
 		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1)
 			return -1;
 
 		qca->dev->stats.tx_packets++;
 		qca->dev->stats.tx_bytes += qca->txq.skb[qca->txq.head]->len;
-		available -= qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
+		available -= pkt_len;
 
 		/* remove the skb from the queue */
 		/* XXX After inconsistent lock states netif_tx_lock()
