@@ -574,6 +574,9 @@ qcaspi_netdev_open(struct net_device *dev)
 	struct qcaspi *qca = netdev_priv(dev);
 	int ret = 0;
 
+	if (qca == NULL)
+		return -EINVAL;
+
 	if (qca->irq < 0)
 		return qca->irq;
 
