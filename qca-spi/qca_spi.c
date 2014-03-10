@@ -75,10 +75,6 @@ static int qcaspi_burst_len = MAX_DMA_BURST_LEN;
 module_param(qcaspi_burst_len, int, 0);
 MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000.");
 
-/*   SPI bus id parameter   */
-#define QCASPI_BUS_ID 1
-#define QCASPI_BUS_MODE (SPI_CPOL | SPI_CPHA)
-#define QCASPI_CS_ID 0
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
