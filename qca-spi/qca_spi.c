@@ -597,8 +597,6 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (pd == NULL)
 		return -1;
 
-	qca->irq = gpio_to_irq(pd->intr_gpio);
-
 	if (qca->irq < 0)
 		return qca->irq;
 
@@ -849,6 +847,7 @@ qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
+	int irq;
 	int intr_gpio = 0;
 	bool fast_probe = false;
 	u32 signature;
@@ -896,7 +895,15 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EINVAL;
 	}
 
+	irq = gpio_to_irq(intr_gpio);
+
 	qca_spi_platform_data.intr_gpio = intr_gpio;
+
+	if (irq < 0) {
+		dev_err(&spi_device->dev,
+		"Failed to get gpio irq: %d!\n",
+		irq);
+	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
 	    (qcaspi_clkspeed > QCASPI_CLK_SPEED_MAX) ||
@@ -934,6 +941,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	qca->spi_board = &qca_spi_board_info;
 	qca->spi_master = NULL;
 	qca->spi_device = spi_device;
+	qca->irq = irq;
 
 	netif_carrier_off(qca->dev);
 
