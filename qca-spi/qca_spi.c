@@ -860,8 +860,8 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EINVAL;
 	}
 
-	dev_info(&spi_device->dev, "SPI device probe (version %s, irq=%d)\n",
-		QCASPI_VERSION, spi_device->irq);
+	dev_info(&spi_device->dev, "SPI device probe (version %s)\n",
+		QCASPI_VERSION);
 
 	/* TODO: Make module parameter higher prio as device tree */
 	if (of_property_read_u16(spi_device->dev.of_node,
