@@ -83,23 +83,6 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
-struct spi_platform_data {
-	int intr_gpio;
-};
-
-static struct spi_platform_data qca_spi_platform_data = {
-	.intr_gpio = 0
-};
-
-static struct spi_board_info qca_spi_board_info = {
-	.modalias = QCASPI_MODNAME,
-	.platform_data = &qca_spi_platform_data,
-	.max_speed_hz = 50000000,
-	.bus_num = QCASPI_BUS_ID,
-	.chip_select = QCASPI_CS_ID,
-	.mode = QCASPI_BUS_MODE
-};
-
 u32
 disable_spi_interrupts(struct qcaspi *qca)
 {
@@ -589,13 +572,7 @@ int
 qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
-	struct spi_platform_data *pd;
 	int ret = 0;
-
-	pd = (struct spi_platform_data *) qca->spi_board->platform_data;
-
-	if (pd == NULL)
-		return -1;
 
 	if (qca->irq < 0)
 		return qca->irq;
@@ -933,8 +910,6 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -ENOMEM;
 	}
 	qca->dev = qcaspi_devs;
-	qca->spi_board = &qca_spi_board_info;
-	qca->spi_master = NULL;
 	qca->spi_device = spi_device;
 	qca->irq = irq;
 
