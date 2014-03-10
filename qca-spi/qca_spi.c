@@ -879,25 +879,20 @@ qca_spi_probe(struct spi_device *spi_device)
 	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
 			"intr-gpios", 0);
 
-	if (gpio_is_valid(intr_gpio)) {
-		ret = gpio_request_one(intr_gpio, GPIOF_IN,
-				"qca7k_intr0");
-
-		if (ret < 0) {
-			dev_err(&spi_device->dev,
-			"Failed to request interrupt gpio: %d!\n",
-			ret);
-		}
-	}
-
-	if (intr_gpio == 0) {
+	if (!gpio_is_valid(intr_gpio)) {
 		dev_err(&spi_device->dev, "Missing interrupt gpio\n");
 		return -EINVAL;
 	}
 
-	irq = gpio_to_irq(intr_gpio);
+	ret = gpio_request_one(intr_gpio, GPIOF_IN, "qca7k_intr0");
 
-	qca_spi_platform_data.intr_gpio = intr_gpio;
+	if (ret < 0) {
+		dev_err(&spi_device->dev,
+		"Failed to request interrupt gpio: %d!\n",
+		ret);
+	}
+
+	irq = gpio_to_irq(intr_gpio);
 
 	if (irq < 0) {
 		dev_err(&spi_device->dev,
@@ -973,13 +968,11 @@ static int
 qca_spi_remove(struct spi_device *spi_device)
 {
 	struct net_device *qcaspi_devs = spi_get_drvdata(spi_device);
-	struct qcaspi *qca = netdev_priv(qcaspi_devs);
+	int intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
+				"intr-gpios", 0);
 
-	if (qca && qca->spi_board) {
-		struct spi_platform_data *pd;
-		pd = (struct spi_platform_data *) qca->spi_board->platform_data;
-		if (pd)
-			gpio_free(pd->intr_gpio);
+	if (gpio_is_valid(intr_gpio)) {
+		gpio_free(intr_gpio);
 	}
 
 	unregister_netdev(qcaspi_devs);
