@@ -70,6 +70,7 @@ struct qcaspi {
 	struct qcafrm_handle frm_handle;
 	struct sk_buff *rx_skb;
 
+	int irq;
 	volatile unsigned int intr_req;
 	volatile unsigned int intr_svc;
 

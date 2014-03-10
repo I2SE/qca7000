@@ -597,10 +597,10 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (pd == NULL)
 		return -1;
 
-	dev->irq = gpio_to_irq(pd->intr_gpio);
+	qca->irq = gpio_to_irq(pd->intr_gpio);
 
-	if (dev->irq < 0)
-		return dev->irq;
+	if (qca->irq < 0)
+		return qca->irq;
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
 	qca->intr_req = 0;
@@ -617,11 +617,11 @@ qcaspi_netdev_open(struct net_device *dev)
 		return PTR_ERR(qca->spi_thread);
 	}
 
-	ret = request_irq(dev->irq, qcaspi_intr_handler,
+	ret = request_irq(qca->irq, qcaspi_intr_handler,
 				IRQF_TRIGGER_RISING, dev->name, qca);
 	if (ret) {
 		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
-				QCASPI_MODNAME, dev->irq, ret);
+				QCASPI_MODNAME, qca->irq, ret);
 		kthread_stop(qca->spi_thread);
 		return ret;
 	}
@@ -639,7 +639,8 @@ qcaspi_netdev_close(struct net_device *dev)
 	netif_stop_queue(dev);
 
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
-	free_irq(dev->irq, qca);
+	free_irq(qca->irq, qca);
+	qca->irq = 0;
 
 	kthread_stop(qca->spi_thread);
 	qca->spi_thread = NULL;
@@ -731,9 +732,9 @@ qcaspi_netdev_init(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 
-	dev->irq = 0;
 	dev->mtu = QCASPI_MTU;
 	dev->type = ARPHRD_ETHER;
+	qca->irq = 0;
 	qca->clkspeed = qcaspi_clkspeed;
 	qca->legacy_mode = qcaspi_legacy_mode;
 	qca->burst_len = qcaspi_burst_len;
