@@ -274,7 +274,7 @@ qcaspi_receive(struct qcaspi *qca)
 
 	/* Allocate rx SKB if we don't have one available. */
 	if (qca->rx_skb == NULL) {
-		qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
+		qca->rx_skb = netdev_alloc_skb(qca->dev, qca->dev->mtu + VLAN_ETH_HLEN);
 		if (qca->rx_skb == NULL) {
 			netdev_dbg(qca->dev, "out of RX resources\n");
 			return -1;
@@ -346,8 +346,8 @@ qcaspi_receive(struct qcaspi *qca)
 						qca->rx_skb, qca->rx_skb->dev);
 				qca->rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
 				netif_rx_ni(qca->rx_skb);
-				qca->rx_skb = dev_alloc_skb(qca->dev->mtu +
-						VLAN_ETH_HLEN);
+				qca->rx_skb = netdev_alloc_skb(qca->dev,
+						qca->dev->mtu + VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->dev, "out of RX resources\n");
 					qca->dev->stats.rx_errors++;
@@ -719,7 +719,7 @@ qcaspi_netdev_init(struct net_device *dev)
 	if (!qca->rx_buffer)
 		return -ENOBUFS;
 
-	qca->rx_skb = dev_alloc_skb(qca->dev->mtu + VLAN_ETH_HLEN);
+	qca->rx_skb = netdev_alloc_skb(dev, qca->dev->mtu + VLAN_ETH_HLEN);
 	if (qca->rx_skb == NULL) {
 		kfree(qca->rx_buffer);
 		netdev_info(qca->dev, "Failed to allocate RX sk_buff.\n");
