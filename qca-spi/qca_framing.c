@@ -105,14 +105,14 @@ qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_by
 		/* Borrow offset field to hold length for now. */
 	case QCAFRM_WAIT_LEN_BYTE0:
 		handle->offset = recv_byte;
-		handle->state--;
+		handle->state = QCAFRM_WAIT_LEN_BYTE1;
 		break;
 	case QCAFRM_WAIT_LEN_BYTE1:
 		handle->offset = handle->offset | (recv_byte << 8);
-		handle->state--;
+		handle->state = QCAFRM_WAIT_RSVD_BYTE1;
 		break;
 	case QCAFRM_WAIT_RSVD_BYTE1:
-		handle->state--;
+		handle->state = QCAFRM_WAIT_RSVD_BYTE2;
 		break;
 	case QCAFRM_WAIT_RSVD_BYTE2:
 		handle->state--;
@@ -137,7 +137,7 @@ qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_by
 			ret = QCAFRM_NOTAIL;
 			handle->state = QCAFRM_HW_LEN0;
 		} else {
-			handle->state--;
+			handle->state = QCAFRM_WAIT_552;
 		}
 		break;
 	case QCAFRM_WAIT_552:
