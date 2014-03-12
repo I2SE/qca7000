@@ -567,13 +567,31 @@ int
 qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
+	struct spi_device *spi_device;
 	int ret = 0;
+	int intr_gpio;
 
-	if (qca == NULL)
+	if (!qca || !qca->spi_device)
 		return -EINVAL;
 
-	if (qca->irq < 0)
+	spi_device = qca->spi_device;
+
+	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
+				"intr-gpios", 0);
+
+	if (!gpio_is_valid(intr_gpio)) {
+		netdev_err(dev, "%s: missing interrupt gpio\n",
+					QCASPI_MODNAME);
+		return -EINVAL;
+	}
+
+	qca->irq = gpio_to_irq(intr_gpio);
+
+	if (qca->irq < 0) {
+		netdev_err(dev, "%s: failed to get IRQ from gpio: %d!\n",
+					QCASPI_MODNAME, qca->irq);
 		return qca->irq;
+	}
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
 	qca->intr_req = 0;
@@ -822,7 +840,6 @@ qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
-	int irq;
 	int intr_gpio = 0;
 	bool fast_probe = false;
 	u32 signature;
@@ -867,14 +884,6 @@ qca_spi_probe(struct spi_device *spi_device)
 		ret);
 	}
 
-	irq = gpio_to_irq(intr_gpio);
-
-	if (irq < 0) {
-		dev_err(&spi_device->dev,
-		"Failed to get gpio irq: %d!\n",
-		irq);
-	}
-
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
 	    (qcaspi_clkspeed > QCASPI_CLK_SPEED_MAX) ||
 	    (qcaspi_legacy_mode < QCASPI_LEGACY_MODE_MIN) ||
@@ -909,7 +918,6 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 	qca->dev = qcaspi_devs;
 	qca->spi_device = spi_device;
-	qca->irq = irq;
 
 	netif_carrier_off(qca->dev);
 
