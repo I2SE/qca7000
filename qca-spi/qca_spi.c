@@ -273,9 +273,9 @@ qcaspi_receive(struct qcaspi *qca)
 	u8 *cp;
 
 	/* Allocate rx SKB if we don't have one available. */
-	if (qca->rx_skb == NULL) {
+	if (!qca->rx_skb) {
 		qca->rx_skb = netdev_alloc_skb(qca->dev, qca->dev->mtu + VLAN_ETH_HLEN);
-		if (qca->rx_skb == NULL) {
+		if (!qca->rx_skb) {
 			netdev_dbg(qca->dev, "out of RX resources\n");
 			return -1;
 		}
@@ -663,7 +663,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	    (skb_tailroom(skb) < QCAFRM_FOOTER_LEN + pad_len)) {
 		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN,
 				QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
-		if (tskb == NULL) {
+		if (!tskb) {
 			netdev_dbg(qca->dev, "could not allocate tx_buff in qcaspi_netdev_xmit\n");
 			return NETDEV_TX_BUSY;
 		}
@@ -738,7 +738,7 @@ qcaspi_netdev_init(struct net_device *dev)
 		return -ENOBUFS;
 
 	qca->rx_skb = netdev_alloc_skb(dev, qca->dev->mtu + VLAN_ETH_HLEN);
-	if (qca->rx_skb == NULL) {
+	if (!qca->rx_skb) {
 		kfree(qca->rx_buffer);
 		netdev_info(qca->dev, "Failed to allocate RX sk_buff.\n");
 		return -ENOBUFS;
