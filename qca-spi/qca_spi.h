@@ -55,7 +55,7 @@ struct txq {
 };
 
 struct qcaspi {
-	struct net_device *dev;
+	struct net_device *net_dev;
 	struct spi_device *spi_dev;
 	struct task_struct *spi_thread;
 
