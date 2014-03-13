@@ -112,7 +112,7 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
-	spi_sync(qca->spi_device, &msg);
+	spi_sync(qca->spi_dev, &msg);
 
 	if (msg.actual_length != QCASPI_CMD_LEN + len)
 		return 0;
@@ -133,7 +133,7 @@ qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
-	spi_sync(qca->spi_device, &msg);
+	spi_sync(qca->spi_dev, &msg);
 
 	if (msg.actual_length != len)
 		return 0;
@@ -159,7 +159,7 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
-	spi_sync(qca->spi_device, &msg);
+	spi_sync(qca->spi_dev, &msg);
 
 	if (msg.actual_length != QCASPI_CMD_LEN + len)
 		return 0;
@@ -180,7 +180,7 @@ qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
-	spi_sync(qca->spi_device, &msg);
+	spi_sync(qca->spi_dev, &msg);
 
 	if (msg.actual_length != len)
 		return 0;
@@ -571,10 +571,10 @@ qcaspi_netdev_open(struct net_device *dev)
 	int ret = 0;
 	int intr_gpio;
 
-	if (!qca || !qca->spi_device)
+	if (!qca || !qca->spi_dev)
 		return -EINVAL;
 
-	spi_device = qca->spi_device;
+	spi_device = qca->spi_dev;
 
 	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
 				"intr-gpios", 0);
@@ -776,7 +776,7 @@ qcaspi_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *p)
 	strlcpy(p->driver, QCASPI_MODNAME, sizeof(p->driver));
 	strlcpy(p->version, QCASPI_VERSION, sizeof(p->version));
 	strlcpy(p->fw_version, "QCA7000", sizeof(p->fw_version));
-	strlcpy(p->bus_info, dev_name(&qca->spi_device->dev),
+	strlcpy(p->bus_info, dev_name(&qca->spi_dev->dev),
 		sizeof(p->bus_info));
 }
 
@@ -917,7 +917,7 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -ENOMEM;
 	}
 	qca->dev = qcaspi_devs;
-	qca->spi_device = spi_device;
+	qca->spi_dev = spi_device;
 
 	netif_carrier_off(qca->dev);
 
