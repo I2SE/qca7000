@@ -274,7 +274,8 @@ qcaspi_receive(struct qcaspi *qca)
 
 	/* Allocate rx SKB if we don't have one available. */
 	if (!qca->rx_skb) {
-		qca->rx_skb = netdev_alloc_skb(qca->net_dev, qca->net_dev->mtu + VLAN_ETH_HLEN);
+		qca->rx_skb = netdev_alloc_skb(qca->net_dev,
+				qca->net_dev->mtu + VLAN_ETH_HLEN);
 		if (!qca->rx_skb) {
 			netdev_dbg(qca->net_dev, "out of RX resources\n");
 			return -1;
