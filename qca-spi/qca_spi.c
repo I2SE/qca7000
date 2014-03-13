@@ -943,6 +943,8 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	spi_set_drvdata(spi_device, qcaspi_devs);
 
+	qcaspi_init_device_debugfs(qca);
+
 	return 0;
 }
 
@@ -950,8 +952,11 @@ static int
 qca_spi_remove(struct spi_device *spi_device)
 {
 	struct net_device *qcaspi_devs = spi_get_drvdata(spi_device);
+	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 	int intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
 				"intr-gpios", 0);
+
+	qcaspi_remove_device_debugfs(qca);
 
 	if (gpio_is_valid(intr_gpio)) {
 		gpio_free(intr_gpio);

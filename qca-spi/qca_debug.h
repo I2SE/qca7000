@@ -25,6 +25,8 @@
 
 #include "qca_spi.h"
 
-void dump_reg(char *str, struct qcaspi *qca);
+void qcaspi_init_device_debugfs(struct qcaspi *qca);
+
+void qcaspi_remove_device_debugfs(struct qcaspi *qca);
 
 #endif

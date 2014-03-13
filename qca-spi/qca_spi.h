@@ -72,6 +72,10 @@ struct qcaspi {
 	volatile unsigned int intr_req;
 	volatile unsigned int intr_svc;
 
+#ifdef CONFIG_DEBUG_FS
+	struct dentry *device_root;
+#endif
+
 	/* user configurable options */
 	u32 clkspeed;
 	u8 legacy_mode;

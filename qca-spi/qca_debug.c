@@ -21,13 +21,17 @@
  */
 
 #include <linux/types.h>
+#include <linux/debugfs.h>
+#include <linux/seq_file.h>
 
 #include "qca_spi.h"
 #include "qca_7k.h"
 
+#ifdef CONFIG_DEBUG_FS
+
 /*   Dumps the contents of all SPI slave registers.        */
-void
-dump_reg(char *str, struct qcaspi *qca)
+static int
+qcaspi_regs_dump(struct seq_file *s, void *what)
 {
 	struct reg {
 		char *name;
@@ -47,12 +51,67 @@ dump_reg(char *str, struct qcaspi *qca)
 		{ "SPI_REG_SIGNATURE", SPI_REG_SIGNATURE },
 		{ "SPI_REG_ACTION_CTRL", SPI_REG_ACTION_CTRL }
 	};
+	
+	struct qcaspi *qca = s->private;
 	int i;
 
 	for (i = 0; i < (sizeof(regs) / sizeof(struct reg)); ++i) {
 		u32 value;
 		value = qcaspi_read_register(qca, regs[i].address);
-		netdev_dbg(qca->net_dev, "%s: %lu: dumpreg: %s(0x%04x)=0x%08x\n",
-			str, jiffies, regs[i].name, regs[i].address, value);
+		seq_printf(s, "%-25s(0x%04x): 0x%08x\n",
+			regs[i].name, regs[i].address, value);
 	}
+
+	return 0;
 }
+
+static int
+qcaspi_regs_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, qcaspi_regs_dump, inode->i_private);
+}
+
+static const struct file_operations qcaspi_regs_ops = {
+	.open = qcaspi_regs_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+void 
+qcaspi_init_device_debugfs(struct qcaspi *qca)
+{
+	struct dentry *device_root;
+
+	device_root = debugfs_create_dir(dev_name(&qca->net_dev->dev), NULL);
+	qca->device_root = device_root;
+
+	if (IS_ERR(device_root) || !device_root) {
+		pr_warn("failed to create debugfs directory for %s\n",
+			dev_name(&qca->net_dev->dev));
+		return;
+	}
+	debugfs_create_file("regs", S_IFREG | S_IRUGO, device_root, qca,
+			&qcaspi_regs_ops);
+}
+
+void
+qcaspi_remove_device_debugfs(struct qcaspi *qca)
+{
+	debugfs_remove_recursive(qca->device_root);
+}
+
+#else /* CONFIG_DEBUG_FS */
+
+void
+qcaspi_init_device_debugfs(struct qcaspi *qca)
+{
+}
+
+void
+qcaspi_remove_device_debugfs(struct qcaspi *qca)
+{
+}
+
+#endif
+
