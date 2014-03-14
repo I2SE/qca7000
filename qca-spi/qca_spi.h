@@ -54,12 +54,22 @@ struct txq {
 	u32 tail;
 };
 
+struct stats {
+	unsigned long trig_reset;
+	unsigned long device_reset;
+	unsigned long reset_timeout;
+	unsigned long read_buf_err;
+	unsigned long write_buf_err;
+	unsigned long out_of_mem;
+};
+
 struct qcaspi {
 	struct net_device *net_dev;
 	struct spi_device *spi_dev;
 	struct task_struct *spi_thread;
 
 	struct txq txq;
+	struct stats stats;
 
 	u8 *rx_buffer;
 	u32 buffer_size;
