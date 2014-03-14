@@ -81,6 +81,49 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 }
 
 static int
+qcaspi_info_show(struct seq_file *s, void *what)
+{
+	struct qcaspi *qca = s->private;
+	
+	seq_printf(s, "RX buffer size   : %lu\n",
+		(unsigned long) qca->buffer_size);
+	
+	seq_printf(s, "Sync state       : %u (",
+		(unsigned int) qca->sync);
+	switch (qca->sync)
+	{
+	case QCASPI_SYNC_UNKNOWN:
+		seq_printf(s, "QCASPI_SYNC_UNKNOWN");
+		break;
+	case QCASPI_SYNC_RESET:
+		seq_printf(s, "QCASPI_SYNC_RESET");
+		break;
+	case QCASPI_SYNC_READY:
+		seq_printf(s, "QCASPI_SYNC_READY");
+		break;
+	default:
+		seq_printf(s, "INVALID");
+		break;
+	}
+	seq_printf(s, ")\n");
+	
+	seq_printf(s, "IRQ              : %d\n",
+		qca->irq);
+	seq_printf(s, "SPI max speed    : %lu\n",
+		(unsigned long) qca->spi_dev->max_speed_hz);
+	seq_printf(s, "SPI mode         : %x\n",
+		qca->spi_dev->mode);
+	seq_printf(s, "SPI chip select  : %u\n",
+		(unsigned int) qca->spi_dev->chip_select);
+	seq_printf(s, "SPI legacy mode  : %u\n",
+		(unsigned int) qca->legacy_mode);
+	seq_printf(s, "SPI burst length : %u\n",
+		(unsigned int) qca->burst_len);
+
+	return 0;
+}
+
+static int
 qcaspi_regs_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, qcaspi_regs_dump, inode->i_private);
@@ -92,6 +135,12 @@ qcaspi_stats_open(struct inode *inode, struct file *file)
 	return single_open(file, qcaspi_stats_show, inode->i_private);
 }
 
+static int
+qcaspi_info_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, qcaspi_info_show, inode->i_private);
+}
+
 static const struct file_operations qcaspi_regs_ops = {
 	.open = qcaspi_regs_open,
 	.read = seq_read,
@@ -101,6 +150,13 @@ static const struct file_operations qcaspi_regs_ops = {
 
 static const struct file_operations qcaspi_stats_ops = {
 	.open = qcaspi_stats_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations qcaspi_info_ops = {
+	.open = qcaspi_info_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
@@ -124,6 +180,9 @@ qcaspi_init_device_debugfs(struct qcaspi *qca)
 
 	debugfs_create_file("stats", S_IFREG | S_IRUGO, device_root, qca,
 			&qcaspi_stats_ops);
+
+	debugfs_create_file("info", S_IFREG | S_IRUGO, device_root, qca,
+			&qcaspi_info_ops);
 }
 
 void
