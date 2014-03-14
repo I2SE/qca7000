@@ -278,7 +278,7 @@ qcaspi_receive(struct qcaspi *qca)
 				qca->net_dev->mtu + VLAN_ETH_HLEN);
 		if (!qca->rx_skb) {
 			netdev_dbg(qca->net_dev, "out of RX resources\n");
-			qca->stats->out_of_mem++;
+			qca->stats.out_of_mem++;
 			return -1;
 		}
 	}
@@ -353,7 +353,7 @@ qcaspi_receive(struct qcaspi *qca)
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->net_dev, "out of RX resources\n");
 					qca->net_dev->stats.rx_errors++;
-					qca->stats->out_of_mem++;
+					qca->stats.out_of_mem++;
 					break;
 				}
 			}
@@ -447,7 +447,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config);
 
 		qca->sync = QCASPI_SYNC_RESET;
-		qca->stats->trig_reset++;
+		qca->stats.trig_reset++;
 		reset_count = 0;
 		break;
 	case QCASPI_SYNC_RESET:
@@ -457,7 +457,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		if (reset_count >= QCASPI_RESET_TIMEOUT) {
 			/* reset did not seem to take place, try again */
 			qca->sync = QCASPI_SYNC_UNKNOWN;
-			qca->stats->reset_timeout++;
+			qca->stats.reset_timeout++;
 			netdev_dbg(qca->net_dev, "sync: reset timeout, restarting process.\n");
 		}
 		break;
@@ -511,7 +511,7 @@ qcaspi_spi_thread(void *data)
 				if (qca->sync != QCASPI_SYNC_READY)
 					continue;
 
-				qca->stats->device_reset++;
+				qca->stats.device_reset++;
 				intr_enable = (SPI_INT_CPU_ON |
 					SPI_INT_PKT_AVLBL |
 					SPI_INT_RDBUF_ERR |
@@ -522,7 +522,7 @@ qcaspi_spi_thread(void *data)
 			if (intr_cause & SPI_INT_RDBUF_ERR) {
 				/* restart sync */
 				netdev_dbg(qca->net_dev, "===> rdbuf error!\n");
-				qca->stats->read_buf_err++;
+				qca->stats.read_buf_err++;
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 				continue;
 			}
@@ -530,7 +530,7 @@ qcaspi_spi_thread(void *data)
 			if (intr_cause & SPI_INT_WRBUF_ERR) {
 				/* restart sync */
 				netdev_dbg(qca->net_dev, "===> wrbuf error!\n");
-				qca->stats->write_buf_err++;
+				qca->stats.write_buf_err++;
 				qca->sync = QCASPI_SYNC_UNKNOWN;
 				continue;
 			}
@@ -673,7 +673,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 				QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
 		if (!tskb) {
 			netdev_dbg(qca->net_dev, "could not allocate tx_buff in qcaspi_netdev_xmit\n");
-			qca->stats->out_of_mem++;
+			qca->stats.out_of_mem++;
 			return NETDEV_TX_BUSY;
 		}
 		dev_kfree_skb(skb);
