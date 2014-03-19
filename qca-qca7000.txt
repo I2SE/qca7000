@@ -1,0 +1,33 @@
+* Qualcomm QCA7000 (SPI protocol driver)
+
+Required properties:
+- compatible : Should be "qca,qca7000"
+- reg : Address and length of the register set for the device
+- intr-gpios : Should specify the gpio for spi interrupt
+- spi-cpha : Should be set
+- spi-cpol: Should be set
+
+Optional properties:
+- spi-max-frequency : Maximum frequency of the SPI bus the chip can operate at
+- legacy-mode : Should specify the data transfer mode (0 = burst mode,
+  1 = legacy mode). Missing the property will use the burst mode.
+- burst-length : Number of data bytes per burst. Numbers smaller than 1 or 
+  greater than 5000 are invalid. Missing the property will have the 
+  burst length be 5000 bytes. This property has only an effect in burst mode.
+- fast-probe : Should be set to skip signature check while probing. This
+  property is useful if the spi master boots faster than the QCA7000 or 
+  the spi master and QCA7000 are not on the same board.
+
+Example:
+
+qca7000@0 {
+	compatible = "qca,qca7000";
+	reg = <0x0>;
+	spi-cpha;                         /* SPI mode: CPHA=1 */
+	spi-cpol;                         /* SPI mode: CPOL=1 */
+	spi-max-frequency = <8000000>;    /* freq: 8 MHz */
+	intr-gpios = <&gpio3 25 0>;       /* GPIO3_25 */
+	legacy-mode = <0>;                /* Burst mode */
+	burst-length = <5000>;
+	fast-probe;
+};
