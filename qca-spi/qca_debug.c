@@ -88,6 +88,9 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_printf(s, "RX buffer size   : %lu\n",
 		(unsigned long) qca->buffer_size);
 	
+	seq_printf(s, "TX queue empty   : %s\n",
+		(qca->txq.skb[qca->txq.head]) ? "no" : "yes");
+
 	seq_printf(s, "Sync state       : %u (",
 		(unsigned int) qca->sync);
 	switch (qca->sync)
@@ -109,6 +112,11 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	
 	seq_printf(s, "IRQ              : %d\n",
 		qca->irq);
+	seq_printf(s, "INTR REQ         : %u\n",
+		qca->intr_req);
+	seq_printf(s, "INTR SVC         : %u\n",
+		qca->intr_svc);
+
 	seq_printf(s, "SPI max speed    : %lu\n",
 		(unsigned long) qca->spi_dev->max_speed_hz);
 	seq_printf(s, "SPI mode         : %x\n",
