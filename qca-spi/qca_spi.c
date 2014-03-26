@@ -842,7 +842,7 @@ qcaspi_netdev_setup(struct net_device *dev)
 
 static const struct of_device_id qca_spi_of_match[] = {
 	{ .compatible = "qca,qca7000" },
-	{},
+	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, qca_spi_of_match);
 
@@ -980,7 +980,7 @@ qca_spi_remove(struct spi_device *spi_device)
 
 static const struct spi_device_id qca_spi_id[] = {
 	{ "qca7000", 0 },
-	{ },
+	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(spi, qca_spi_id);
 
