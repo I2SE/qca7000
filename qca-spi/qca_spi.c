@@ -550,7 +550,7 @@ qcaspi_spi_thread(void *data)
 					intr_cause);
 		}
 
-		if (qca->txq.skb[qca->txq.head] != NULL)
+		if (qca->txq.skb[qca->txq.head])
 			qcaspi_transmit(qca);
 	}
 	set_current_state(TASK_RUNNING);
