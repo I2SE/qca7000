@@ -55,7 +55,7 @@ qcaspi_regs_dump(struct seq_file *s, void *what)
 	struct qcaspi *qca = s->private;
 	int i;
 
-	for (i = 0; i < (sizeof(regs) / sizeof(struct reg)); ++i) {
+	for (i = 0; i < (sizeof(regs) / sizeof(struct reg)); i++) {
 		u32 value;
 		value = qcaspi_read_register(qca, regs[i].address);
 		seq_printf(s, "%-25s(0x%04x): 0x%08x\n",

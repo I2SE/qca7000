@@ -254,7 +254,7 @@ qcaspi_transmit(struct qcaspi *qca)
 		netif_tx_lock_bh(qca->net_dev);
 		dev_kfree_skb(qca->txq.skb[qca->txq.head]);
 		qca->txq.skb[qca->txq.head] = NULL;
-		++qca->txq.head;
+		qca->txq.head++;
 		if (qca->txq.head >= TX_QUEUE_LEN)
 			qca->txq.head = 0;
 		netif_wake_queue(qca->net_dev);
@@ -376,7 +376,7 @@ qcaspi_flush_txq(struct qcaspi *qca)
 	 * has been replaced by netif_tx_lock_bh() and so on.
 	 */
 	netif_tx_lock_bh(qca->net_dev);
-	for (i = 0; i < TX_QUEUE_LEN; ++i) {
+	for (i = 0; i < TX_QUEUE_LEN; i++) {
 		if (qca->txq.skb[i])
 			dev_kfree_skb(qca->txq.skb[i]);
 		qca->txq.skb[i] = NULL;
@@ -451,7 +451,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		reset_count = 0;
 		break;
 	case QCASPI_SYNC_RESET:
-		++reset_count;
+		reset_count++;
 		netdev_dbg(qca->net_dev, "sync: waiting for CPU on, count %d.\n",
 				reset_count);
 		if (reset_count >= QCASPI_RESET_TIMEOUT) {
