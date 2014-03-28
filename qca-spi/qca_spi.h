@@ -58,9 +58,12 @@ struct stats {
 	unsigned long trig_reset;
 	unsigned long device_reset;
 	unsigned long reset_timeout;
+	unsigned long read_err;
+	unsigned long write_err;
 	unsigned long read_buf_err;
 	unsigned long write_buf_err;
 	unsigned long out_of_mem;
+	unsigned long write_buf_miss;
 };
 
 struct qcaspi {
