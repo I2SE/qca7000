@@ -271,7 +271,7 @@ qcaspi_transmit(struct qcaspi *qca)
 int
 qcaspi_receive(struct qcaspi *qca)
 {
-	u32 available;
+	u16 available;
 	u32 bytes_read;
 	u32 count;
 	u8 *cp;
@@ -400,10 +400,10 @@ qcaspi_flush_txq(struct qcaspi *qca)
 void
 qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 {
-	u32 signature;
-	u32 spi_config;
-	u32 wrbuf_space;
-	static u32 reset_count;
+	u16 signature;
+	u16 spi_config;
+	u16 wrbuf_space;
+	static u16 reset_count;
 
 	if (event == QCASPI_SYNC_CPUON) {
 		/* Read signature twice, if not valid
