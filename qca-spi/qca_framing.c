@@ -29,6 +29,9 @@
 u16
 qcafrm_create_header(u8 *buf, u16 len)
 {
+	if (!buf)
+		return 0;
+
 	len = cpu_to_le16(len);
 
 	buf[0] = 0xAA;
@@ -46,6 +49,9 @@ qcafrm_create_header(u8 *buf, u16 len)
 u16
 qcafrm_create_footer(u8 *buf)
 {
+	if (!buf)
+		return 0;
+
 	buf[0] = 0x55;
 	buf[1] = 0x55;
 	return QCAFRM_FOOTER_LEN;
