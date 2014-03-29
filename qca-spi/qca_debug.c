@@ -73,9 +73,12 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 	seq_printf(s, "Triggered resets    : %lu\n", qca->stats.trig_reset);
 	seq_printf(s, "Device resets       : %lu\n", qca->stats.device_reset);
 	seq_printf(s, "Reset timeouts      : %lu\n", qca->stats.reset_timeout);
+	seq_printf(s, "Read errors         : %lu\n", qca->stats.read_err);
+	seq_printf(s, "Write errors        : %lu\n", qca->stats.write_err);
 	seq_printf(s, "Read buffer errors  : %lu\n", qca->stats.read_buf_err);
 	seq_printf(s, "Write buffer errors : %lu\n", qca->stats.write_buf_err);
 	seq_printf(s, "Out of memory       : %lu\n", qca->stats.out_of_mem);
+	seq_printf(s, "Write buffer misses : %lu\n", qca->stats.write_buf_miss);
 
 	return 0;
 }
