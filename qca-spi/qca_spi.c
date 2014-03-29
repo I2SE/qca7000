@@ -237,11 +237,15 @@ qcaspi_transmit(struct qcaspi *qca)
 	while (qca->txq.skb[qca->txq.head]) {
 		pkt_len = qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
 
-		if (available < pkt_len)
+		if (available < pkt_len) {
+			qca->stats.write_buf_miss++;
 			break;
+		}
 
-		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1)
+		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1) {
+			qca->stats.write_err++;
 			return -1;
+		}
 
 		qca->net_dev->stats.tx_packets++;
 		qca->net_dev->stats.tx_bytes += qca->txq.skb[qca->txq.head]->len;
@@ -316,7 +320,14 @@ qcaspi_receive(struct qcaspi *qca)
 		netdev_dbg(qca->net_dev, "available: %d, byte read: %d\n",
 				available, bytes_read);
 
-		available -= bytes_read;
+		if (bytes_read)
+		{
+			available -= bytes_read;
+		}
+		else
+		{
+			qca->stats.read_err++;
+		}
 
 		while ((bytes_read--) && (qca->rx_skb)) {
 			s32 retcode;
