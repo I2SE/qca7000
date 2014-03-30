@@ -463,7 +463,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		break;
 	case QCASPI_SYNC_RESET:
 		reset_count++;
-		netdev_dbg(qca->net_dev, "sync: waiting for CPU on, count %d.\n",
+		netdev_dbg(qca->net_dev, "sync: waiting for CPU on, count %u.\n",
 				reset_count);
 		if (reset_count >= QCASPI_RESET_TIMEOUT) {
 			/* reset did not seem to take place, try again */
