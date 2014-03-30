@@ -57,12 +57,6 @@ qcafrm_create_footer(u8 *buf)
 	return QCAFRM_FOOTER_LEN;
 }
 
-void
-qcafrm_fsm_init(struct qcafrm_handle *handle)
-{
-	handle->state = QCAFRM_HW_LEN0;
-}
-
 /*   Gather received bytes and try to extract a full ethernet frame by
  *   following a simple state machine.
  *

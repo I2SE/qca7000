@@ -113,7 +113,10 @@ u16 qcafrm_create_header(u8 *buf, u16 len);
 
 u16 qcafrm_create_footer(u8 *buf);
 
-void qcafrm_fsm_init(struct qcafrm_handle *handle);
+static inline void qcafrm_fsm_init(struct qcafrm_handle *handle)
+{
+	handle->state = QCAFRM_HW_LEN0;
+}
 
 /*   Gather received bytes and try to extract a full Ethernet frame
  *   by following a simple state machine.
