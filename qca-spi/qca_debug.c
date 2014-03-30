@@ -79,6 +79,7 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 	seq_printf(s, "Write buffer errors : %lu\n", qca->stats.write_buf_err);
 	seq_printf(s, "Out of memory       : %lu\n", qca->stats.out_of_mem);
 	seq_printf(s, "Write buffer misses : %lu\n", qca->stats.write_buf_miss);
+	seq_printf(s, "Transmit queue full : %lu\n", qca->stats.queue_full);
 
 	return 0;
 }
@@ -91,8 +92,15 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_printf(s, "RX buffer size   : %lu\n",
 		(unsigned long) qca->buffer_size);
 	
-	seq_printf(s, "TX queue empty   : %s\n",
-		(qca->txq.skb[qca->txq.head]) ? "no" : "yes");
+	seq_printf(s, "TX queue state   : ");
+	if (qca->txq.skb[qca->txq.head]) {
+		seq_printf(s, "empty");
+	} else if (qca->txq.skb[qca->txq.tail]) {
+		seq_printf(s, "full");
+	} else {
+		seq_printf(s, "in use");
+	}
+	seq_printf(s, "\n");
 
 	seq_printf(s, "Sync state       : %u (",
 		(unsigned int) qca->sync);

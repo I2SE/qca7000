@@ -64,6 +64,7 @@ struct stats {
 	unsigned long write_buf_err;
 	unsigned long out_of_mem;
 	unsigned long write_buf_miss;
+	unsigned long queue_full;
 };
 
 struct qcaspi {

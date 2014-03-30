@@ -675,6 +675,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (qca->txq.skb[qca->txq.tail]) {
 		netdev_warn(qca->net_dev, "queue was unexpectedly full!\n");
 		netif_stop_queue(qca->net_dev);
+		qca->stats.queue_full++;
 		return NETDEV_TX_BUSY;
 	}
 
