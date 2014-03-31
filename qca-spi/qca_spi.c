@@ -490,7 +490,7 @@ qcaspi_spi_thread(void *data)
 		    (qca->sync == QCASPI_SYNC_READY))
 			schedule();
 
-		__set_current_state(TASK_RUNNING);
+		set_current_state(TASK_RUNNING);
 
 		netdev_dbg(qca->net_dev, "have work to do. int: %d, tx_skb: %p\n",
 				qca->intr_req - qca->intr_svc,
