@@ -51,7 +51,7 @@ qcaspi_regs_dump(struct seq_file *s, void *what)
 		{ "SPI_REG_SIGNATURE", SPI_REG_SIGNATURE },
 		{ "SPI_REG_ACTION_CTRL", SPI_REG_ACTION_CTRL }
 	};
-	
+
 	struct qcaspi *qca = s->private;
 	int i;
 
@@ -88,24 +88,24 @@ static int
 qcaspi_info_show(struct seq_file *s, void *what)
 {
 	struct qcaspi *qca = s->private;
-	
+
 	seq_printf(s, "RX buffer size   : %lu\n",
 		(unsigned long) qca->buffer_size);
-	
+
 	seq_printf(s, "TX queue state   : ");
-	if (qca->txq.skb[qca->txq.head]) {
+
+	if (qca->txq.skb[qca->txq.head])
 		seq_printf(s, "empty");
-	} else if (qca->txq.skb[qca->txq.tail]) {
+	else if (qca->txq.skb[qca->txq.tail])
 		seq_printf(s, "full");
-	} else {
+	else
 		seq_printf(s, "in use");
-	}
+
 	seq_printf(s, "\n");
 
 	seq_printf(s, "Sync state       : %u (",
 		(unsigned int) qca->sync);
-	switch (qca->sync)
-	{
+	switch (qca->sync) {
 	case QCASPI_SYNC_UNKNOWN:
 		seq_printf(s, "QCASPI_SYNC_UNKNOWN");
 		break;
@@ -120,7 +120,7 @@ qcaspi_info_show(struct seq_file *s, void *what)
 		break;
 	}
 	seq_printf(s, ")\n");
-	
+
 	seq_printf(s, "IRQ              : %d\n",
 		qca->irq);
 	seq_printf(s, "INTR REQ         : %u\n",
@@ -181,7 +181,7 @@ static const struct file_operations qcaspi_info_ops = {
 	.release = single_release,
 };
 
-void 
+void
 qcaspi_init_device_debugfs(struct qcaspi *qca)
 {
 	struct dentry *device_root;

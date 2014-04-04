@@ -321,13 +321,9 @@ qcaspi_receive(struct qcaspi *qca)
 				available, bytes_read);
 
 		if (bytes_read)
-		{
 			available -= bytes_read;
-		}
 		else
-		{
 			qca->stats.read_err++;
-		}
 
 		while ((bytes_read--) && (qca->rx_skb)) {
 			s32 retcode;
@@ -356,11 +352,11 @@ qcaspi_receive(struct qcaspi *qca)
 				qca->net_dev->stats.rx_bytes += retcode;
 				skb_put(qca->rx_skb, retcode);
 				qca->rx_skb->protocol = eth_type_trans(
-						qca->rx_skb, qca->rx_skb->dev);
+					qca->rx_skb, qca->rx_skb->dev);
 				qca->rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
 				netif_rx_ni(qca->rx_skb);
 				qca->rx_skb = netdev_alloc_skb(qca->net_dev,
-						qca->net_dev->mtu + VLAN_ETH_HLEN);
+					qca->net_dev->mtu + VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->net_dev, "out of RX resources\n");
 					qca->net_dev->stats.rx_errors++;
@@ -980,9 +976,8 @@ qca_spi_remove(struct spi_device *spi_device)
 
 	qcaspi_remove_device_debugfs(qca);
 
-	if (gpio_is_valid(intr_gpio)) {
+	if (gpio_is_valid(intr_gpio))
 		gpio_free(intr_gpio);
-	}
 
 	unregister_netdev(qcaspi_devs);
 	free_netdev(qcaspi_devs);
