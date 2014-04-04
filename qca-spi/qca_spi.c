@@ -229,6 +229,7 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 int
 qcaspi_transmit(struct qcaspi *qca)
 {
+	struct net_device_stats *n_stats = &qca->net_dev->stats;
 	u32 available;
 	u32 pkt_len;
 
@@ -247,8 +248,8 @@ qcaspi_transmit(struct qcaspi *qca)
 			return -1;
 		}
 
-		qca->net_dev->stats.tx_packets++;
-		qca->net_dev->stats.tx_bytes += qca->txq.skb[qca->txq.head]->len;
+		n_stats->tx_packets++;
+		n_stats->tx_bytes += qca->txq.skb[qca->txq.head]->len;
 		available -= pkt_len;
 
 		/* remove the skb from the queue */
@@ -271,6 +272,7 @@ qcaspi_transmit(struct qcaspi *qca)
 int
 qcaspi_receive(struct qcaspi *qca)
 {
+	struct net_device_stats *n_stats = &qca->net_dev->stats;
 	u16 available;
 	u32 bytes_read;
 	u32 count;
@@ -338,18 +340,18 @@ qcaspi_receive(struct qcaspi *qca)
 				break;
 			case QCAFRM_NOTAIL:
 				netdev_dbg(qca->net_dev, "no RX tail\n");
-				qca->net_dev->stats.rx_errors++;
-				qca->net_dev->stats.rx_dropped++;
+				n_stats->rx_errors++;
+				n_stats->rx_dropped++;
 				break;
 			case QCAFRM_INVLEN:
 				netdev_dbg(qca->net_dev, "invalid RX length\n");
-				qca->net_dev->stats.rx_errors++;
-				qca->net_dev->stats.rx_dropped++;
+				n_stats->rx_errors++;
+				n_stats->rx_dropped++;
 				break;
 			default:
 				qca->rx_skb->dev = qca->net_dev;
-				qca->net_dev->stats.rx_packets++;
-				qca->net_dev->stats.rx_bytes += retcode;
+				n_stats->rx_packets++;
+				n_stats->rx_bytes += retcode;
 				skb_put(qca->rx_skb, retcode);
 				qca->rx_skb->protocol = eth_type_trans(
 					qca->rx_skb, qca->rx_skb->dev);
@@ -359,7 +361,7 @@ qcaspi_receive(struct qcaspi *qca)
 					qca->net_dev->mtu + VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
 					netdev_dbg(qca->net_dev, "out of RX resources\n");
-					qca->net_dev->stats.rx_errors++;
+					n_stats->rx_errors++;
 					qca->stats.out_of_mem++;
 					break;
 				}
