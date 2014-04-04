@@ -6,16 +6,17 @@ Add config and build options for the QCA7000 SPI protocol driver.
 Signed-off-by: Stefan Wahren <stefan.wahren@i2se.com>
 ---
 diff --git a/drivers/net/ethernet/Kconfig b/drivers/net/ethernet/Kconfig
-index ed956e0..19780c8 100644
+index ed956e0..87aff62 100644
 --- a/drivers/net/ethernet/Kconfig
 +++ b/drivers/net/ethernet/Kconfig
-@@ -135,6 +135,15 @@ config ETHOC
+@@ -135,6 +135,16 @@ config ETHOC
  source "drivers/net/ethernet/packetengines/Kconfig"
  source "drivers/net/ethernet/pasemi/Kconfig"
  source "drivers/net/ethernet/qlogic/Kconfig"
 +
 +config QCA7000
 +	tristate "Qualcomm Atheros QCA7000 support"
++	depends on SPI_MASTER && OF_GPIO
 +	---help---
 +	  This SPI protocol driver supports the Qualcomm Atheros QCA7000.
 +
