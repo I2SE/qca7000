@@ -23,11 +23,11 @@
  *   kernel-based SPI device.
  */
 
-#include <linux/version.h>
-#include <linux/module.h>
 #include <linux/init.h>
+#include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/spi/spi.h>
+#include <linux/version.h>
 
 #include "qca_7k.h"
 

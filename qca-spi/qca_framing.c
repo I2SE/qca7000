@@ -21,8 +21,8 @@
  *   by an atheros frame while transmitted over a serial channel;
  */
 
-#include <linux/kernel.h>
 #include <linux/if_ether.h>
+#include <linux/kernel.h>
 
 #include "qca_framing.h"
 

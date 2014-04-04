@@ -44,10 +44,10 @@
 #include <linux/types.h>
 #include <linux/version.h>
 
-#include "qca_spi.h"
-#include "qca_framing.h"
 #include "qca_7k.h"
 #include "qca_debug.h"
+#include "qca_framing.h"
+#include "qca_spi.h"
 
 #define QCASPI_VERSION "0.2.1-i"
 #define QCASPI_MODNAME "qcaspi"

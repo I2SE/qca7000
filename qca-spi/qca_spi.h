@@ -26,11 +26,11 @@
 #ifndef QCA_SPI_HEADER
 #define QCA_SPI_HEADER
 
-#include <linux/spi/spi.h>
-#include <linux/sched.h>
-#include <linux/types.h>
-#include <linux/skbuff.h>
 #include <linux/netdevice.h>
+#include <linux/sched.h>
+#include <linux/skbuff.h>
+#include <linux/spi/spi.h>
+#include <linux/types.h>
 
 #include "qca_framing.h"
 
