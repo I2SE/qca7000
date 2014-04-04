@@ -752,7 +752,7 @@ qcaspi_netdev_init(struct net_device *dev)
 	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN +
 		QCAFRM_FOOTER_LEN + 4) * 4;
 
-	memset(&qca->stats, 0, sizeof(struct stats));
+	memset(&qca->stats, 0, sizeof(struct qcaspi_stats));
 
 	qca->rx_buffer = kmalloc(qca->buffer_size, GFP_KERNEL);
 	if (!qca->rx_buffer)
