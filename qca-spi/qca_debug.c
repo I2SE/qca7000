@@ -92,34 +92,34 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_printf(s, "RX buffer size   : %lu\n",
 		(unsigned long) qca->buffer_size);
 
-	seq_printf(s, "TX queue state   : ");
+	seq_puts(s, "TX queue state   : ");
 
 	if (qca->txq.skb[qca->txq.head])
-		seq_printf(s, "empty");
+		seq_puts(s, "empty");
 	else if (qca->txq.skb[qca->txq.tail])
-		seq_printf(s, "full");
+		seq_puts(s, "full");
 	else
-		seq_printf(s, "in use");
+		seq_puts(s, "in use");
 
-	seq_printf(s, "\n");
+	seq_puts(s, "\n");
 
 	seq_printf(s, "Sync state       : %u (",
 		(unsigned int) qca->sync);
 	switch (qca->sync) {
 	case QCASPI_SYNC_UNKNOWN:
-		seq_printf(s, "QCASPI_SYNC_UNKNOWN");
+		seq_puts(s, "QCASPI_SYNC_UNKNOWN");
 		break;
 	case QCASPI_SYNC_RESET:
-		seq_printf(s, "QCASPI_SYNC_RESET");
+		seq_puts(s, "QCASPI_SYNC_RESET");
 		break;
 	case QCASPI_SYNC_READY:
-		seq_printf(s, "QCASPI_SYNC_READY");
+		seq_puts(s, "QCASPI_SYNC_READY");
 		break;
 	default:
-		seq_printf(s, "INVALID");
+		seq_puts(s, "INVALID");
 		break;
 	}
-	seq_printf(s, ")\n");
+	seq_puts(s, ")\n");
 
 	seq_printf(s, "IRQ              : %d\n",
 		qca->irq);
