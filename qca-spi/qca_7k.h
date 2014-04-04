@@ -24,8 +24,8 @@
  *   register placeholders.
  */
 
-#ifndef QCA7K_HEADER
-#define QCA7K_HEADER
+#ifndef _QCA_7K_H
+#define _QCA_7K_H
 
 #include <linux/types.h>
 
@@ -72,4 +72,4 @@ u16 qcaspi_read_register(struct qcaspi *qca, u16 reg);
 void qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value);
 int qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd);
 
-#endif
+#endif /* _QCA_7K_H */

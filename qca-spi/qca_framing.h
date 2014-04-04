@@ -21,8 +21,8 @@
  *   frame while transmitted over a serial channel.
  */
 
-#ifndef _QCAFRAMING_H
-#define _QCAFRAMING_H
+#ifndef _QCA_FRAMING_H
+#define _QCA_FRAMING_H
 
 #include <linux/if_ether.h>
 #include <linux/if_vlan.h>
@@ -131,4 +131,4 @@ static inline void qcafrm_fsm_init(struct qcafrm_handle *handle)
 
 s32 qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte);
 
-#endif
+#endif /* _QCA_FRAMING_H */

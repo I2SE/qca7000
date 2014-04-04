@@ -23,8 +23,8 @@
  *   placeholders;
  */
 
-#ifndef QCA_SPI_HEADER
-#define QCA_SPI_HEADER
+#ifndef _QCA_SPI_H
+#define _QCA_SPI_H
 
 #include <linux/netdevice.h>
 #include <linux/sched.h>
@@ -96,4 +96,4 @@ struct qcaspi {
 	u16 burst_len;
 };
 
-#endif
+#endif /* _QCA_SPI_H */

@@ -20,8 +20,8 @@
 /*   This file contains debugging routines for use in the QCA7K driver.
  */
 
-#ifndef QCA_DEBUG
-#define QCA_DEBUG
+#ifndef _QCA_DEBUG_H
+#define _QCA_DEBUG_H
 
 #include "qca_spi.h"
 
@@ -29,4 +29,4 @@ void qcaspi_init_device_debugfs(struct qcaspi *qca);
 
 void qcaspi_remove_device_debugfs(struct qcaspi *qca);
 
-#endif
+#endif /* _QCA_DEBUG_H */
