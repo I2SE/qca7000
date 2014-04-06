@@ -802,9 +802,23 @@ qcaspi_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *p)
 		sizeof(p->bus_info));
 }
 
+static int
+qcaspi_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
+{
+	cmd->transceiver = XCVR_INTERNAL;
+	cmd->supported = SUPPORTED_10baseT_Half;
+	ethtool_cmd_speed_set(cmd,  SPEED_10);
+	cmd->duplex = DUPLEX_HALF;
+	cmd->port = PORT_OTHER;
+	cmd->autoneg = AUTONEG_DISABLE;
+
+	return 0;
+}
+
 static const struct ethtool_ops ops = {
 	.get_drvinfo = qcaspi_get_drvinfo,
 	.get_link = ethtool_op_get_link,
+	.get_settings = qcaspi_get_settings,
 };
 
 static int
