@@ -593,8 +593,8 @@ qcaspi_netdev_open(struct net_device *dev)
 	qca->irq = gpio_to_irq(qca->intr_gpio);
 
 	if (qca->irq < 0) {
-		netdev_err(dev, "%s: failed to get IRQ from gpio: %d!\n",
-					QCASPI_MODNAME, qca->irq);
+		netdev_err(dev, "%s: failed to get IRQ from gpio %d: %d!\n",
+					QCASPI_MODNAME, qca->intr_gpio, qca->irq);
 		return qca->irq;
 	}
 
@@ -903,8 +903,8 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	if (ret < 0) {
 		dev_err(&spi_device->dev,
-		"Failed to request interrupt gpio: %d!\n",
-		ret);
+		"Failed to request interrupt gpio %d: %d!\n",
+		intr_gpio, ret);
 	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
