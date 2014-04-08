@@ -599,7 +599,7 @@ qcaspi_netdev_open(struct net_device *dev)
 	}
 
 	memset(&qca->txq, 0, sizeof(qca->txq));
-	qca->intr_req = 0;
+	qca->intr_req = gpio_get_value(qca->intr_gpio);
 	qca->intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
 	qcafrm_fsm_init(&qca->frm_handle);
