@@ -50,7 +50,7 @@
 #include "qca_framing.h"
 #include "qca_spi.h"
 
-#define QCASPI_VERSION "0.2.1-i"
+#define QCASPI_VERSION "0.2.2-i"
 #define QCASPI_MODNAME "qcaspi"
 #define QCASPI_DEF_MAC_ADDRESS "\x00\xB0\x52\xFF\xFF\x02"
 
