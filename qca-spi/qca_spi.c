@@ -585,25 +585,12 @@ int
 qcaspi_netdev_open(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
-	struct spi_device *spi_device;
 	int ret = 0;
-	int intr_gpio;
 
-	if (!qca || !qca->spi_dev)
+	if (!qca)
 		return -EINVAL;
 
-	spi_device = qca->spi_dev;
-
-	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
-				"intr-gpios", 0);
-
-	if (!gpio_is_valid(intr_gpio)) {
-		netdev_err(dev, "%s: missing interrupt gpio\n",
-					QCASPI_MODNAME);
-		return -EINVAL;
-	}
-
-	qca->irq = gpio_to_irq(intr_gpio);
+	qca->irq = gpio_to_irq(qca->intr_gpio);
 
 	if (qca->irq < 0) {
 		netdev_err(dev, "%s: failed to get IRQ from gpio: %d!\n",
@@ -954,6 +941,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 	qca->net_dev = qcaspi_devs;
 	qca->spi_dev = spi_device;
+	qca->intr_gpio = intr_gpio;
 
 	netif_carrier_off(qca->net_dev);
 
@@ -988,13 +976,11 @@ qca_spi_remove(struct spi_device *spi_device)
 {
 	struct net_device *qcaspi_devs = spi_get_drvdata(spi_device);
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
-	int intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
-				"intr-gpios", 0);
 
 	qcaspi_remove_device_debugfs(qca);
 
-	if (gpio_is_valid(intr_gpio))
-		gpio_free(intr_gpio);
+	if (gpio_is_valid(qca->intr_gpio))
+		gpio_free(qca->intr_gpio);
 
 	unregister_netdev(qcaspi_devs);
 	free_netdev(qcaspi_devs);
