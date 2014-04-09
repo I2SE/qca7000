@@ -720,6 +720,8 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 	netdev_info(qca->net_dev, "Transmit timeout at %ld, latency %ld\n",
 			jiffies, jiffies - dev->trans_start);
 	qca->net_dev->stats.tx_errors++;
+	/* trigger qca sync */
+	qca->sync = QCASPI_SYNC_UNKNOWN;
 	/* wake the queue if there is room */
 	if (qca->txq.skb[qca->txq.tail] == NULL)
 		netif_wake_queue(dev);
