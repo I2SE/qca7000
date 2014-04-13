@@ -818,6 +818,9 @@ qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 	if (netif_running(dev))
 		return -EBUSY;
 
+	if (!is_valid_ether_addr(addr->sa_data))
+		return -EADDRNOTAVAIL;
+
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
 	netdev_info(qca->net_dev, "Setting MAC address to %pM.\n",
 			dev->dev_addr);
