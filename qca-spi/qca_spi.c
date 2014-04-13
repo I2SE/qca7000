@@ -813,7 +813,6 @@ static const struct ethtool_ops ops = {
 static int
 qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 {
-	struct qcaspi *qca = netdev_priv(dev);
 	struct sockaddr *addr = p;
 	if (netif_running(dev))
 		return -EBUSY;
@@ -822,9 +821,6 @@ qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
 		return -EADDRNOTAVAIL;
 
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
-	netdev_info(qca->net_dev, "Setting MAC address to %pM.\n",
-			dev->dev_addr);
-
 	return 0;
 }
 
