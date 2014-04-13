@@ -811,16 +811,17 @@ static const struct ethtool_ops ops = {
 };
 
 static int
-qcaspi_netdev_set_mac_address(struct net_device *dev, void *p)
+qcaspi_netdev_set_mac_address(struct net_device *dev, void *addr)
 {
-	struct sockaddr *addr = p;
+	struct sockaddr *sa = addr;
+
 	if (netif_running(dev))
 		return -EBUSY;
 
-	if (!is_valid_ether_addr(addr->sa_data))
+	if (!is_valid_ether_addr(sa->sa_data))
 		return -EADDRNOTAVAIL;
 
-	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
+	memcpy(dev->dev_addr, sa->sa_data, dev->addr_len);
 	return 0;
 }
 
