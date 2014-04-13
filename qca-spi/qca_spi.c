@@ -52,7 +52,6 @@
 
 #define QCASPI_VERSION "0.2.2-i"
 #define QCASPI_MODNAME "qcaspi"
-#define QCASPI_DEF_MAC_ADDRESS "\x00\xB0\x52\xFF\xFF\x02"
 
 #define MAX_DMA_BURST_LEN 5000
 
@@ -849,7 +848,7 @@ qcaspi_netdev_setup(struct net_device *dev)
 	dev->watchdog_timeo = QCASPI_TX_TIMEOUT;
 	dev->flags = IFF_MULTICAST;
 	dev->tx_queue_len = 100;
-	memcpy(dev->dev_addr, QCASPI_DEF_MAC_ADDRESS, dev->addr_len);
+	eth_hw_addr_random(dev);
 
 	qca = netdev_priv(dev);
 	memset(qca, 0, sizeof(struct qcaspi));
