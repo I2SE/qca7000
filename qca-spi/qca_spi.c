@@ -834,6 +834,7 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_change_mtu = qcaspi_netdev_change_mtu,
 	.ndo_set_mac_address = qcaspi_netdev_set_mac_address,
 	.ndo_tx_timeout = qcaspi_netdev_tx_timeout,
+	.ndo_validate_addr = eth_validate_addr,
 };
 
 void
