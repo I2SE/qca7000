@@ -403,7 +403,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 	u16 wrbuf_space;
 	static u16 reset_count;
 
-	if (event == QCASPI_SYNC_CPUON) {
+	if (event == QCASPI_EVENT_CPUON) {
 		/* Read signature twice, if not valid
 		 * go back to unknown state.
 		 */
@@ -494,7 +494,7 @@ qcaspi_spi_thread(void *data)
 				qca->intr_req - qca->intr_svc,
 				qca->txq.skb[qca->txq.head]);
 
-		qcaspi_qca7k_sync(qca, QCASPI_SYNC_UPDATE);
+		qcaspi_qca7k_sync(qca, QCASPI_EVENT_UPDATE);
 
 		if (qca->sync != QCASPI_SYNC_READY) {
 			netdev_dbg(qca->net_dev, "sync: not ready %u, turn off carrier and flush\n",
@@ -514,7 +514,7 @@ qcaspi_spi_thread(void *data)
 					intr_cause);
 
 			if (intr_cause & SPI_INT_CPU_ON) {
-				qcaspi_qca7k_sync(qca, QCASPI_SYNC_CPUON);
+				qcaspi_qca7k_sync(qca, QCASPI_EVENT_CPUON);
 
 				/* not synced. */
 				if (qca->sync != QCASPI_SYNC_READY)

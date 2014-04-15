@@ -45,8 +45,8 @@
 #define QCASPI_RESET_TIMEOUT 10
 
 /* sync events */
-#define QCASPI_SYNC_UPDATE 0
-#define QCASPI_SYNC_CPUON  1
+#define QCASPI_EVENT_UPDATE 0
+#define QCASPI_EVENT_CPUON  1
 
 struct txq {
 	struct sk_buff *skb[TX_QUEUE_LEN];
