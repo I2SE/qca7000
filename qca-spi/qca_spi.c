@@ -112,10 +112,11 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
-	spi_sync(qca->spi_dev, &msg);
 
-	if (msg.actual_length != QCASPI_CMD_LEN + len)
+	if (spi_sync(qca->spi_dev, &msg)) {
+		qcaspi_spi_error(qca);
 		return 0;
+	}
 
 	return len;
 }
@@ -133,10 +134,11 @@ qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
-	spi_sync(qca->spi_dev, &msg);
 
-	if (msg.actual_length != len)
+	if (spi_sync(qca->spi_dev, &msg)) {
+		qcaspi_spi_error(qca);
 		return 0;
+	}
 
 	return len;
 }
@@ -159,10 +161,11 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
-	spi_sync(qca->spi_dev, &msg);
 
-	if (msg.actual_length != QCASPI_CMD_LEN + len)
+	if (spi_sync(qca->spi_dev, &msg)) {
+		qcaspi_spi_error(qca);
 		return 0;
+	}
 
 	return len;
 }
@@ -180,10 +183,11 @@ qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
-	spi_sync(qca->spi_dev, &msg);
 
-	if (msg.actual_length != len)
+	if (spi_sync(qca->spi_dev, &msg)) {
+		qcaspi_spi_error(qca);
 		return 0;
+	}
 
 	return len;
 }
