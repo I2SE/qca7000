@@ -597,7 +597,7 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	if (qca->irq < 0) {
 		netdev_err(dev, "%s: failed to get IRQ from gpio %d: %d!\n",
-					QCASPI_MODNAME, qca->intr_gpio, qca->irq);
+			QCASPI_MODNAME, qca->intr_gpio, qca->irq);
 		return qca->irq;
 	}
 
