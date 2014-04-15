@@ -31,6 +31,16 @@
 
 #include "qca_7k.h"
 
+void
+qcaspi_spi_error(struct qcaspi *qca)
+{
+	if (qca->sync != QCASPI_SYNC_READY)
+		return;
+
+	netdev_err(qca->net_dev, "spi error\n");
+	qca->sync = QCASPI_SYNC_UNKNOWN;
+}
+
 u16
 qcaspi_read_register(struct qcaspi *qca, u16 reg)
 {
