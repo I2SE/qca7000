@@ -51,7 +51,7 @@
 #include "qca_framing.h"
 #include "qca_spi.h"
 
-#define QCASPI_VERSION "0.2.2-i"
+#define QCASPI_VERSION "0.2.3-i"
 #define QCASPI_MODNAME "qcaspi"
 
 #define MAX_DMA_BURST_LEN 5000
