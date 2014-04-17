@@ -879,7 +879,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
-	bool fast_probe = false;
+	bool pluggable = false;
 	u16 signature;
 	u16 prop = 0;
 	int ret;
@@ -895,16 +895,16 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	/* TODO: Make module parameter higher prio as device tree */
 	if (of_property_read_u16(spi_device->dev.of_node,
-		"legacy-mode", &prop) == 0)
+		"qca,legacy-mode", &prop) == 0)
 		qcaspi_legacy_mode = prop;
 
 	if (of_property_read_u16(spi_device->dev.of_node,
-		"burst-length", &prop) == 0)
+		"linux,burst-length", &prop) == 0)
 		qcaspi_burst_len = prop;
 
 	if (of_find_property(spi_device->dev.of_node,
-			"fast-probe", NULL)) {
-		fast_probe = true;
+		"linux,pluggable-connection", NULL)) {
+		pluggable = true;
 	}
 
 	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
@@ -972,7 +972,7 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	netif_carrier_off(qca->net_dev);
 
-	if (!fast_probe) {
+	if (!pluggable) {
 		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 
