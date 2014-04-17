@@ -434,10 +434,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 
 	switch (qca->sync) {
 	case QCASPI_SYNC_READY:
-		/* Don't check signature after sync in burst mode. */
-		if (!qca->legacy_mode)
-			return;
-
+		/* Read signature, if not valid go to unknown state. */
 		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			qca->sync = QCASPI_SYNC_UNKNOWN;
