@@ -42,11 +42,10 @@ qcaspi_spi_error(struct qcaspi *qca)
 	qca->stats.spi_err++;
 }
 
-u16
-qcaspi_read_register(struct qcaspi *qca, u16 reg)
+int
+qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result)
 {
 	u16 tx_data;
-	u16 rx_data;
 	struct spi_transfer transfer[2];
 	struct spi_message msg;
 	int ret;
@@ -56,10 +55,11 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg)
 	spi_message_init(&msg);
 
 	tx_data = cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_INTERNAL | reg);
+	*result = 0;
 
 	transfer[0].tx_buf = &tx_data;
 	transfer[0].len = QCASPI_CMD_LEN;
-	transfer[1].rx_buf = &rx_data;
+	transfer[1].rx_buf = result;
 	transfer[1].len = QCASPI_CMD_LEN;
 
 	spi_message_add_tail(&transfer[0], &msg);
@@ -70,13 +70,19 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg)
 	spi_message_add_tail(&transfer[1], &msg);
 	ret = spi_sync(qca->spi_dev, &msg);
 
-	if (ret)
-		qcaspi_spi_error(qca);
+	if (!ret)
+		ret = msg.status;
 
-	return be16_to_cpu(rx_data);
+	if (ret) {
+		qcaspi_spi_error(qca);
+	} else {
+		*result = be16_to_cpu(*result);
+	}
+
+	return ret;
 }
 
-void
+int
 qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 {
 	u16 tx_data[2];
@@ -104,8 +110,13 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 	spi_message_add_tail(&transfer[1], &msg);
 	ret = spi_sync(qca->spi_dev, &msg);
 
+	if (!ret)
+		ret = msg.status;
+
 	if (ret)
 		qcaspi_spi_error(qca);
+
+	return ret;
 }
 
 int
@@ -125,13 +136,13 @@ qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 
 	cmd = cpu_to_be16(cmd);
 	ret = spi_sync(qca->spi_dev, &msg);
-	
+
+	if (!ret)
+		ret = msg.status;
+
 	if (ret)
 		qcaspi_spi_error(qca);
 
-	if (msg.actual_length != sizeof(cmd))
-		return -1;
-
-	return 0;
+	return ret;
 }
 

@@ -69,8 +69,8 @@
 #define SPI_ACTRL_PKT_AVA_INTR_MODE (1 << 0)
 
 void qcaspi_spi_error(struct qcaspi *qca);
-u16 qcaspi_read_register(struct qcaspi *qca, u16 reg);
-void qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value);
+int qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result);
+int qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value);
 int qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd);
 
 #endif /* _QCA_7K_H */

@@ -79,19 +79,25 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
-u32
+u16
 disable_spi_interrupts(struct qcaspi *qca)
 {
-	u32 old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
-	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
+	u16 old_value = 0;
+
+	if (!qcaspi_read_register(qca, SPI_REG_INTR_ENABLE, &old_value))
+		qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
+
 	return old_value;
 }
 
-u32
-enable_spi_interrupts(struct qcaspi *qca, u32 intr_enable)
+u16
+enable_spi_interrupts(struct qcaspi *qca, u16 intr_enable)
 {
-	u32 old_value = qcaspi_read_register(qca, SPI_REG_INTR_ENABLE);
-	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
+	u16 old_value = 0;
+
+	if (!qcaspi_read_register(qca, SPI_REG_INTR_ENABLE, &old_value))
+		qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
+
 	return old_value;
 }
 
@@ -101,6 +107,7 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 	u16 cmd;
 	struct spi_message msg;
 	struct spi_transfer transfer[2];
+	int ret;
 
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
@@ -113,8 +120,9 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
+	ret = spi_sync(qca->spi_dev, &msg);
 
-	if (spi_sync(qca->spi_dev, &msg)) {
+	if (ret || (msg.actual_length != QCASPI_CMD_LEN + len)) {
 		qcaspi_spi_error(qca);
 		return 0;
 	}
@@ -127,6 +135,7 @@ qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 {
 	struct spi_message msg;
 	struct spi_transfer transfer;
+	int ret;
 
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
@@ -135,8 +144,9 @@ qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
+	ret = spi_sync(qca->spi_dev, &msg);
 
-	if (spi_sync(qca->spi_dev, &msg)) {
+	if (ret || (msg.actual_length != len)) {
 		qcaspi_spi_error(qca);
 		return 0;
 	}
@@ -150,6 +160,7 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 	struct spi_message msg;
 	u16 cmd;
 	struct spi_transfer transfer[2];
+	int ret;
 
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
@@ -162,8 +173,9 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 
 	spi_message_add_tail(&transfer[0], &msg);
 	spi_message_add_tail(&transfer[1], &msg);
+	ret = spi_sync(qca->spi_dev, &msg);
 
-	if (spi_sync(qca->spi_dev, &msg)) {
+	if (ret || (msg.actual_length != QCASPI_CMD_LEN + len)) {
 		qcaspi_spi_error(qca);
 		return 0;
 	}
@@ -176,6 +188,7 @@ qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message msg;
 	struct spi_transfer transfer;
+	int ret;
 
 	memset(&transfer, 0, sizeof(transfer));
 	spi_message_init(&msg);
@@ -184,8 +197,9 @@ qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 	transfer.len = len;
 
 	spi_message_add_tail(&transfer, &msg);
+	ret = spi_sync(qca->spi_dev, &msg);
 
-	if (spi_sync(qca->spi_dev, &msg)) {
+	if (ret || (msg.actual_length != len)) {
 		qcaspi_spi_error(qca);
 		return 0;
 	}
@@ -235,10 +249,10 @@ int
 qcaspi_transmit(struct qcaspi *qca)
 {
 	struct net_device_stats *n_stats = &qca->net_dev->stats;
-	u32 available;
+	u16 available = 0;
 	u32 pkt_len;
 
-	available = qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA);
+	qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA, &available);
 
 	while (qca->txq.skb[qca->txq.head]) {
 		pkt_len = qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
@@ -278,7 +292,7 @@ int
 qcaspi_receive(struct qcaspi *qca)
 {
 	struct net_device_stats *n_stats = &qca->net_dev->stats;
-	u16 available;
+	u16 available = 0;
 	u32 bytes_read;
 	u32 count;
 	u8 *cp;
@@ -295,7 +309,7 @@ qcaspi_receive(struct qcaspi *qca)
 	}
 
 	/* Read the packet size. */
-	available = qcaspi_read_register(qca, SPI_REG_RDBUF_BYTE_AVA);
+	qcaspi_read_register(qca, SPI_REG_RDBUF_BYTE_AVA, &available);
 	netdev_dbg(qca->net_dev, "qcaspi_receive: SPI_REG_RDBUF_BYTE_AVA: Value: %08x\n",
 			available);
 
@@ -403,24 +417,24 @@ qcaspi_flush_txq(struct qcaspi *qca)
 void
 qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 {
-	u16 signature;
+	u16 signature = 0;
 	u16 spi_config;
-	u16 wrbuf_space;
+	u16 wrbuf_space = 0;
 	static u16 reset_count;
 
 	if (event == QCASPI_EVENT_CPUON) {
 		/* Read signature twice, if not valid
 		 * go back to unknown state.
 		 */
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			qca->sync = QCASPI_SYNC_UNKNOWN;
 			netdev_dbg(qca->net_dev, "sync: got CPU on, but signature was invalid, restart\n");
 		} else {
 			/* ensure that the WRBUF is empty */
-			wrbuf_space = qcaspi_read_register(qca,
-					SPI_REG_WRBUF_SPC_AVA);
+			qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA,
+				&wrbuf_space);
 			if (wrbuf_space != QCASPI_HW_BUF_LEN) {
 				netdev_dbg(qca->net_dev, "sync: got CPU on, but wrbuf not empty. reset!\n");
 				qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -435,7 +449,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 	switch (qca->sync) {
 	case QCASPI_SYNC_READY:
 		/* Read signature, if not valid go to unknown state. */
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			qca->sync = QCASPI_SYNC_UNKNOWN;
 			netdev_dbg(qca->net_dev, "sync: bad signature, restart\n");
@@ -445,7 +459,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 		break;
 	case QCASPI_SYNC_UNKNOWN:
 		/* Read signature, if not valid stay in unknown state */
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			netdev_dbg(qca->net_dev, "sync: could not read signature to reset device, retry.\n");
 			return;
@@ -453,7 +467,7 @@ qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 
 		/* TODO: use GPIO to reset QCA7000 in legacy mode*/
 		netdev_dbg(qca->net_dev, "sync: resetting device.\n");
-		spi_config = qcaspi_read_register(qca, SPI_REG_SPI_CONFIG);
+		qcaspi_read_register(qca, SPI_REG_SPI_CONFIG, &spi_config);
 		spi_config |= QCASPI_SLAVE_RESET_BIT;
 		qcaspi_write_register(qca, SPI_REG_SPI_CONFIG, spi_config);
 
@@ -479,8 +493,8 @@ static int
 qcaspi_spi_thread(void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
-	u32 intr_cause;
-	u32 intr_enable;
+	u16 intr_cause = 0;
+	u16 intr_enable = 0;
 
 	netdev_info(qca->net_dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
@@ -510,8 +524,8 @@ qcaspi_spi_thread(void *data)
 		if (qca->intr_svc != qca->intr_req) {
 			qca->intr_svc = qca->intr_req;
 			intr_enable = disable_spi_interrupts(qca);
-			intr_cause = qcaspi_read_register(qca,
-					SPI_REG_INTR_CAUSE);
+			qcaspi_read_register(qca, SPI_REG_INTR_CAUSE,
+				&intr_cause);
 			netdev_dbg(qca->net_dev, "interrupts: 0x%08x\n",
 					intr_cause);
 
@@ -866,7 +880,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
 	bool fast_probe = false;
-	u32 signature;
+	u16 signature;
 	u16 prop = 0;
 	int ret;
 	const char *mac;
@@ -959,8 +973,8 @@ qca_spi_probe(struct spi_device *spi_device)
 	netif_carrier_off(qca->net_dev);
 
 	if (!fast_probe) {
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
-		signature = qcaspi_read_register(qca, SPI_REG_SIGNATURE);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
+		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 
 		if (signature != QCASPI_GOOD_SIGNATURE) {
 			dev_err(&spi_device->dev, "Invalid signature (0x%04X)\n",
