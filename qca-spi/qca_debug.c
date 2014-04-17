@@ -81,6 +81,7 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 	seq_printf(s, "Out of memory       : %lu\n", qca->stats.out_of_mem);
 	seq_printf(s, "Write buffer misses : %lu\n", qca->stats.write_buf_miss);
 	seq_printf(s, "Transmit queue full : %lu\n", qca->stats.queue_full);
+	seq_printf(s, "SPI errors          : %lu\n", qca->stats.spi_err);
 
 	return 0;
 }
