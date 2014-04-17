@@ -39,6 +39,7 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
+#include <linux/of_net.h>
 #include <linux/sched.h>
 #include <linux/skbuff.h>
 #include <linux/spi/spi.h>
@@ -850,7 +851,6 @@ qcaspi_netdev_setup(struct net_device *dev)
 	dev->watchdog_timeo = QCASPI_TX_TIMEOUT;
 	dev->flags = IFF_MULTICAST;
 	dev->tx_queue_len = 100;
-	eth_hw_addr_random(dev);
 
 	qca = netdev_priv(dev);
 	memset(qca, 0, sizeof(struct qcaspi));
@@ -872,6 +872,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	u32 signature;
 	u16 prop = 0;
 	int ret;
+	const char *mac;
 
 	if (!spi_device->dev.of_node) {
 		dev_err(&spi_device->dev, "Missing device tree\n");
@@ -946,6 +947,17 @@ qca_spi_probe(struct spi_device *spi_device)
 	qca->net_dev = qcaspi_devs;
 	qca->spi_dev = spi_device;
 	qca->intr_gpio = intr_gpio;
+
+	mac = of_get_mac_address(spi_device->dev.of_node);
+
+	if (mac)
+		memcpy(qca->net_dev->dev_addr, mac, ETH_ALEN);
+
+	if (!is_valid_ether_addr(qca->net_dev->dev_addr)) {
+		eth_hw_addr_random(qca->net_dev);
+		dev_info(&spi_device->dev, "Using random MAC address: %pM\n",
+			qca->net_dev->dev_addr);
+	}
 
 	netif_carrier_off(qca->net_dev);
 

@@ -14,6 +14,7 @@ Optional properties:
 - spi-max-frequency : Maximum frequency of the SPI bus the chip can operate at.
   Numbers smaller than 1000000 or greater than 16000000 are invalid. Missing
   the property will set the spi frequency to 8000000 Hertz.
+- local-mac-address: 6 bytes, mac address
 - legacy-mode : Should specify the data transfer mode (0 = burst mode,
   1 = legacy mode). Missing the property will use the burst mode.
 - burst-length : Number of data bytes per burst. Numbers smaller than 1 or 
@@ -42,6 +43,7 @@ ssp2: ssp@80014000 {
 		spi-max-frequency = <8000000>;    /* freq: 8 MHz */
 		intr-gpios = <&gpio3 25 0>;       /* GPIO3_25 */
 		legacy-mode = <0>;                /* Burst mode */
+		local-mac-address = [ A0 B0 C0 D0 E0 F0 ];
 		burst-length = <5000>;
 		fast-probe;
 	};
