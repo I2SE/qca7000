@@ -39,6 +39,7 @@ qcaspi_spi_error(struct qcaspi *qca)
 
 	netdev_err(qca->net_dev, "spi error\n");
 	qca->sync = QCASPI_SYNC_UNKNOWN;
+	qca->stats.spi_err++;
 }
 
 u16
