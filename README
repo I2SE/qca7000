@@ -56,7 +56,7 @@ ssp2: ssp@80014000 {
 		spi-cpol;                         /* SPI mode: CPOL=1 */
 		spi-max-frequency = <8000000>;    /* max SPI frequency in Hz */
 		intr-gpios = <&gpio3 25 0>;       /* GPIO for SPI Interrupt */
-		fast-probe;                       /* skip signature check */
+		linux,pluggable;                  /* skip signature check */
 		reg = <0x0>;
 	}; 
 };
