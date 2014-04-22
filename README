@@ -26,20 +26,23 @@ has device tree support.
 
 These are the steps to include QCA7000 support into kernel:
 
-- fetch the kernel (e.g. from the git repository 
+- fetch the kernel (e.g. from the git repository
   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git)
 - switch to branch 3.10
 - apply the patch "linux-3.10.patch" from the root directory against
   Linux kernel
-- copy all C and header files from the directory "qca-spi" into 
+- add a qca7000 node in the device tree source of your platform
+  (see example below)
+- copy all C and header files from the directory "qca-spi" into
   "linux/drivers/net/ethernet"
 - call "make menuconfig"
+- make sure device tree support and at least a spi master are enable
 - enable "Qualcomm Atheros QCA7000 support" under 
   Device Driver > Network device support > Ethernet driver support
 - save the configuration
-- build the kernel with "make"
+- build the kernel and device tree blob with "make"
 
-This is an example device tree configuration for i.MX28 
+This is an extract of an example device tree configuration for i.MX28 
 (ssp2 = SPI Master):
 
 ssp2: ssp@80014000 {
