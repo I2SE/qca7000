@@ -79,26 +79,27 @@ MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000."
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
-u16
-disable_spi_interrupts(struct qcaspi *qca)
+void
+start_spi_intr_handling(struct qcaspi *qca, u16 *intr_cause)
 {
-	u16 old_value = 0;
+	*intr_cause = 0;
 
-	if (!qcaspi_read_register(qca, SPI_REG_INTR_ENABLE, &old_value))
-		qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
-
-	return old_value;
+	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
+	qcaspi_read_register(qca, SPI_REG_INTR_CAUSE, intr_cause);
+	netdev_dbg(qca->net_dev, "interrupts: 0x%04x\n", *intr_cause);
 }
 
-u16
-enable_spi_interrupts(struct qcaspi *qca, u16 intr_enable)
+void
+end_spi_intr_handling(struct qcaspi *qca, u16 intr_cause)
 {
-	u16 old_value = 0;
-
-	if (!qcaspi_read_register(qca, SPI_REG_INTR_ENABLE, &old_value))
-		qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
-
-	return old_value;
+	u16 intr_enable = (SPI_INT_CPU_ON |
+			SPI_INT_PKT_AVLBL |
+			SPI_INT_RDBUF_ERR |
+			SPI_INT_WRBUF_ERR);
+			
+	qcaspi_write_register(qca, SPI_REG_INTR_CAUSE, intr_cause);
+	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, intr_enable);
+	netdev_dbg(qca->net_dev, "acking int: 0x%04x\n", intr_cause);
 }
 
 u32
@@ -494,7 +495,6 @@ qcaspi_spi_thread(void *data)
 {
 	struct qcaspi *qca = (struct qcaspi *) data;
 	u16 intr_cause = 0;
-	u16 intr_enable = 0;
 
 	netdev_info(qca->net_dev, "SPI thread created\n");
 	while (!kthread_should_stop()) {
@@ -523,11 +523,7 @@ qcaspi_spi_thread(void *data)
 
 		if (qca->intr_svc != qca->intr_req) {
 			qca->intr_svc = qca->intr_req;
-			intr_enable = disable_spi_interrupts(qca);
-			qcaspi_read_register(qca, SPI_REG_INTR_CAUSE,
-				&intr_cause);
-			netdev_dbg(qca->net_dev, "interrupts: 0x%08x\n",
-					intr_cause);
+			start_spi_intr_handling(qca, &intr_cause);
 
 			if (intr_cause & SPI_INT_CPU_ON) {
 				qcaspi_qca7k_sync(qca, QCASPI_EVENT_CPUON);
@@ -537,10 +533,6 @@ qcaspi_spi_thread(void *data)
 					continue;
 
 				qca->stats.device_reset++;
-				intr_enable = (SPI_INT_CPU_ON |
-					SPI_INT_PKT_AVLBL |
-					SPI_INT_RDBUF_ERR |
-					SPI_INT_WRBUF_ERR);
 				netif_carrier_on(qca->net_dev);
 			}
 
@@ -568,11 +560,7 @@ qcaspi_spi_thread(void *data)
 					qcaspi_receive(qca);
 			}
 
-			qcaspi_write_register(qca, SPI_REG_INTR_CAUSE,
-					intr_cause);
-			enable_spi_interrupts(qca, intr_enable);
-			netdev_dbg(qca->net_dev, "acking int: 0x%08x\n",
-					intr_cause);
+			end_spi_intr_handling(qca, intr_cause);
 		}
 
 		if (qca->txq.skb[qca->txq.head])
