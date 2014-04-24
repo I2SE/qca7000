@@ -51,7 +51,7 @@
 #include "qca_framing.h"
 #include "qca_spi.h"
 
-#define DRV_VERSION "0.2.3-i"
+#define DRV_VERSION "0.2.4-i"
 #define DRV_NAME    "qcaspi"
 
 #define MAX_DMA_BURST_LEN 5000
@@ -755,6 +755,16 @@ qcaspi_netdev_init(struct net_device *dev)
 		netdev_info(qca->net_dev, "Failed to allocate RX sk_buff.\n");
 		return -ENOBUFS;
 	}
+
+	memset(&qca->spi_xfer1, 0, sizeof(struct spi_transfer));
+	memset(&qca->spi_xfer2, 0, sizeof(struct spi_transfer) * 2);
+
+	spi_message_init(&qca->spi_msg1);
+	spi_message_add_tail(&qca->spi_xfer1, &qca->spi_msg1);
+
+	spi_message_init(&qca->spi_msg2);
+	spi_message_add_tail(&qca->spi_xfer2[0], &qca->spi_msg2);
+	spi_message_add_tail(&qca->spi_xfer2[1], &qca->spi_msg2);
 
 	return 0;
 }
