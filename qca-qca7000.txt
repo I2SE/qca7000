@@ -1,7 +1,7 @@
 * Qualcomm QCA7000 (Ethernet over spi protocol)
 
-Note: The QCA7000 is a spi device and must be defined as a child of a
-spi master in the device tree.
+Note: The QCA7000 is useable as a spi device. In this case it must be defined
+as a child of a spi master in the device tree.
 
 Required properties:
 - compatible : Should be "qca,qca7000"
