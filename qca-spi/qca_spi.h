@@ -42,6 +42,7 @@
 #define QCASPI_SYNC_UNKNOWN 0
 #define QCASPI_SYNC_RESET   1
 #define QCASPI_SYNC_READY   2
+
 #define QCASPI_RESET_TIMEOUT 10
 
 /* sync events */
