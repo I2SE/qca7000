@@ -823,7 +823,7 @@ qcaspi_netdev_set_mac_address(struct net_device *dev, void *addr)
 	if (!is_valid_ether_addr(sa->sa_data))
 		return -EADDRNOTAVAIL;
 
-	memcpy(dev->dev_addr, sa->sa_data, dev->addr_len);
+	ether_addr_copy(dev->dev_addr, sa->sa_data);
 	return 0;
 }
 
@@ -951,7 +951,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	mac = of_get_mac_address(spi_device->dev.of_node);
 
 	if (mac)
-		memcpy(qca->net_dev->dev_addr, mac, ETH_ALEN);
+		ether_addr_copy(qca->net_dev->dev_addr, mac);
 
 	if (!is_valid_ether_addr(qca->net_dev->dev_addr)) {
 		eth_hw_addr_random(qca->net_dev);
