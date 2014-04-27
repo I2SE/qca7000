@@ -64,10 +64,6 @@
 #define SPI_INT_RDBUF_ERR      (1 << 1)
 #define SPI_INT_PKT_AVLBL      (1 << 0)
 
-/*   ACTION_CTRL register definition.            */
-#define SPI_ACTRL_PKT_AVA_SPLIT_MODE (1 << 8)
-#define SPI_ACTRL_PKT_AVA_INTR_MODE (1 << 0)
-
 void qcaspi_spi_error(struct qcaspi *qca);
 int qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result);
 int qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value);
