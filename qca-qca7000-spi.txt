@@ -1,19 +1,19 @@
-* Qualcomm QCA7000 (Ethernet over spi protocol)
+* Qualcomm QCA7000 (Ethernet over SPI protocol)
 
-Note: The QCA7000 is useable as a spi device. In this case it must be defined
+Note: The QCA7000 is useable as a SPI device. In this case it must be defined
 as a child of a spi master in the device tree.
 
 Required properties:
 - compatible : Should be "qca,qca7000"
-- reg : Should specify the spi chip select
-- intr-gpios : Should specify the gpio for spi interrupt
+- reg : Should specify the SPI chip select
+- intr-gpios : Should specify the GPIO for SPI interrupt
 - spi-cpha : Must be set
 - spi-cpol: Must be set
 
 Optional properties:
 - spi-max-frequency : Maximum frequency of the SPI bus the chip can operate at.
   Numbers smaller than 1000000 or greater than 16000000 are invalid. Missing
-  the property will set the spi frequency to 8000000 Hertz.
+  the property will set the SPI frequency to 8000000 Hertz.
 - local-mac-address: 6 bytes, mac address
 - qca,legacy-mode : Should specify the data transfer mode of the QCA7000
   (0 = burst mode, 1 = legacy mode). Missing the property will use the
@@ -22,12 +22,12 @@ Optional properties:
   or greater than 5000 are invalid. Missing the property will set the
   burst length to 5000 bytes. This property has only an effect in burst mode.
 - linux,pluggable-connection : Should be set to skip signature check while
-  probing. This property is useful if the spi master and QCA7000 are not on the
+  probing. This property is useful if the SPI master and QCA7000 are not on the
   same board.
 
 Example:
 
-/* Freescale i.MX28 spi master*/
+/* Freescale i.MX28 SPI master*/
 ssp2: ssp@80014000 {
 	#address-cells = <1>;
 	#size-cells = <0>;
