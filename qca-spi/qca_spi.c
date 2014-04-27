@@ -59,7 +59,7 @@
 /*   Modules parameters     */
 #define QCASPI_CLK_SPEED_MIN 1000000
 #define QCASPI_CLK_SPEED_MAX 16000000
-#define QCASPI_CLK_SPEED 8000000
+#define QCASPI_CLK_SPEED     8000000
 static int qcaspi_clkspeed = QCASPI_CLK_SPEED;
 module_param(qcaspi_clkspeed, int, 0);
 MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
@@ -664,7 +664,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 		tskb = skb_copy_expand(skb, QCAFRM_HEADER_LEN,
 				QCAFRM_FOOTER_LEN + pad_len, GFP_ATOMIC);
 		if (!tskb) {
-			netdev_dbg(qca->net_dev, "could not allocate tx_buff in qcaspi_netdev_xmit\n");
+			netdev_dbg(qca->net_dev, "could not allocate tx_buff\n");
 			qca->stats.out_of_mem++;
 			return NETDEV_TX_BUSY;
 		}
@@ -941,7 +941,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	qca = netdev_priv(qcaspi_devs);
 	if (!qca) {
 		free_netdev(qcaspi_devs);
-		dev_err(&spi_device->dev, "Fail to retrieve private structure from net device\n");
+		dev_err(&spi_device->dev, "Fail to retrieve private structure\n");
 		return -ENOMEM;
 	}
 	qca->net_dev = qcaspi_devs;
@@ -974,7 +974,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 
 	if (register_netdev(qcaspi_devs)) {
-		dev_info(&spi_device->dev, "Unable to register network device %s\n",
+		dev_info(&spi_device->dev, "Unable to register net device %s\n",
 			qcaspi_devs->name);
 		free_netdev(qcaspi_devs);
 		return -EFAULT;
