@@ -339,6 +339,7 @@ qcaspi_receive(struct qcaspi *qca)
 
 		while ((bytes_read--) && (qca->rx_skb)) {
 			s32 retcode;
+
 			retcode = qcafrm_fsm_decode(&qca->frm_handle,
 					qca->rx_skb->data,
 					skb_tailroom(qca->rx_skb),
