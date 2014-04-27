@@ -31,17 +31,17 @@
 
 #include "qca_spi.h"
 
-#define QCA7K_SPI_READ (1 << 15)
-#define QCA7K_SPI_WRITE (0 << 15)
+#define QCA7K_SPI_READ     (1 << 15)
+#define QCA7K_SPI_WRITE    (0 << 15)
 #define QCA7K_SPI_INTERNAL (1 << 14)
 #define QCA7K_SPI_EXTERNAL (0 << 14)
 
-#define QCASPI_CMD_LEN 2
+#define QCASPI_CMD_LEN    2
 #define QCASPI_HW_PKT_LEN 4
 #define QCASPI_HW_BUF_LEN 0xC5B
 
 /*   SPI registers;                               */
-#define	SPI_REG_BFR_SIZE        0x0100
+#define SPI_REG_BFR_SIZE        0x0100
 #define SPI_REG_WRBUF_SPC_AVA   0x0200
 #define SPI_REG_RDBUF_BYTE_AVA  0x0300
 #define SPI_REG_SPI_CONFIG      0x0400
