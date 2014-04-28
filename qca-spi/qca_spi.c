@@ -747,16 +747,6 @@ qcaspi_netdev_init(struct net_device *dev)
 		return -ENOBUFS;
 	}
 
-	memset(&qca->spi_xfer1, 0, sizeof(struct spi_transfer));
-	memset(&qca->spi_xfer2, 0, sizeof(struct spi_transfer) * 2);
-
-	spi_message_init(&qca->spi_msg1);
-	spi_message_add_tail(&qca->spi_xfer1, &qca->spi_msg1);
-
-	spi_message_init(&qca->spi_msg2);
-	spi_message_add_tail(&qca->spi_xfer2[0], &qca->spi_msg2);
-	spi_message_add_tail(&qca->spi_xfer2[1], &qca->spi_msg2);
-
 	return 0;
 }
 
@@ -854,6 +844,16 @@ qcaspi_netdev_setup(struct net_device *dev)
 
 	qca = netdev_priv(dev);
 	memset(qca, 0, sizeof(struct qcaspi));
+
+	memset(&qca->spi_xfer1, 0, sizeof(struct spi_transfer));
+	memset(&qca->spi_xfer2, 0, sizeof(struct spi_transfer) * 2);
+
+	spi_message_init(&qca->spi_msg1);
+	spi_message_add_tail(&qca->spi_xfer1, &qca->spi_msg1);
+
+	spi_message_init(&qca->spi_msg2);
+	spi_message_add_tail(&qca->spi_xfer2[0], &qca->spi_msg2);
+	spi_message_add_tail(&qca->spi_xfer2[1], &qca->spi_msg2);
 }
 
 static const struct of_device_id qca_spi_of_match[] = {
