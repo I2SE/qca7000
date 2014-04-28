@@ -932,12 +932,12 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EFAULT;
 	}
 
-	qcaspi_devs = alloc_netdev(sizeof(struct qcaspi), "qca%d",
-			qcaspi_netdev_setup);
-	if (!qcaspi_devs) {
-		dev_err(&spi_device->dev, "Unable to allocate memory for spi network device\n");
+	qcaspi_devs = alloc_etherdev(sizeof(struct qcaspi));
+	if (!qcaspi_devs)
 		return -ENOMEM;
-	}
+
+	qcaspi_netdev_setup(qcaspi_devs);
+
 	qca = netdev_priv(qcaspi_devs);
 	if (!qca) {
 		free_netdev(qcaspi_devs);
