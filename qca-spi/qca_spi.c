@@ -692,8 +692,10 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (new_tail >= TX_QUEUE_LEN)
 		new_tail = 0;
 
-	if (qca->txq.skb[new_tail])
+	if (qca->txq.skb[new_tail]) {
 		netif_stop_queue(qca->net_dev);
+		qca->stats.queue_full++;
+	}
 
 	qca->txq.skb[qca->txq.tail] = skb;
 	qca->txq.tail = new_tail;
