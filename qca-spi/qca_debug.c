@@ -21,6 +21,7 @@
  */
 
 #include <linux/debugfs.h>
+#include <linux/ethtool.h>
 #include <linux/gpio.h>
 #include <linux/seq_file.h>
 #include <linux/types.h>
@@ -229,3 +230,38 @@ qcaspi_remove_device_debugfs(struct qcaspi *qca)
 
 #endif
 
+static void
+qcaspi_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *p)
+{
+	struct qcaspi *qca = netdev_priv(dev);
+
+	strlcpy(p->driver, QCASPI_DRV_NAME, sizeof(p->driver));
+	strlcpy(p->version, QCASPI_DRV_VERSION, sizeof(p->version));
+	strlcpy(p->fw_version, "QCA7000", sizeof(p->fw_version));
+	strlcpy(p->bus_info, dev_name(&qca->spi_dev->dev),
+		sizeof(p->bus_info));
+}
+
+static int
+qcaspi_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
+{
+	cmd->transceiver = XCVR_INTERNAL;
+	cmd->supported = SUPPORTED_10baseT_Half;
+	ethtool_cmd_speed_set(cmd,  SPEED_10);
+	cmd->duplex = DUPLEX_HALF;
+	cmd->port = PORT_OTHER;
+	cmd->autoneg = AUTONEG_DISABLE;
+
+	return 0;
+}
+
+static const struct ethtool_ops qcaspi_ethtool_ops = {
+	.get_drvinfo = qcaspi_get_drvinfo,
+	.get_link = ethtool_op_get_link,
+	.get_settings = qcaspi_get_settings,
+};
+
+void qcaspi_set_ethtool_ops(struct net_device *dev)
+{
+	SET_ETHTOOL_OPS(dev, &qcaspi_ethtool_ops);
+}

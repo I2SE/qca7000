@@ -29,4 +29,6 @@ void qcaspi_init_device_debugfs(struct qcaspi *qca);
 
 void qcaspi_remove_device_debugfs(struct qcaspi *qca);
 
+void qcaspi_set_ethtool_ops(struct net_device *dev);
+
 #endif /* _QCA_DEBUG_H */

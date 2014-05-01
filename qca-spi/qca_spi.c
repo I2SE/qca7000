@@ -24,7 +24,6 @@
 
 #include <linux/errno.h>
 #include <linux/etherdevice.h>
-#include <linux/ethtool.h>
 #include <linux/gpio.h>
 #include <linux/if_arp.h>
 #include <linux/if_ether.h>
@@ -763,37 +762,6 @@ qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 	return 0;
 }
 
-static void
-qcaspi_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *p)
-{
-	struct qcaspi *qca = netdev_priv(dev);
-
-	strlcpy(p->driver, QCASPI_DRV_NAME, sizeof(p->driver));
-	strlcpy(p->version, QCASPI_DRV_VERSION, sizeof(p->version));
-	strlcpy(p->fw_version, "QCA7000", sizeof(p->fw_version));
-	strlcpy(p->bus_info, dev_name(&qca->spi_dev->dev),
-		sizeof(p->bus_info));
-}
-
-static int
-qcaspi_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
-{
-	cmd->transceiver = XCVR_INTERNAL;
-	cmd->supported = SUPPORTED_10baseT_Half;
-	ethtool_cmd_speed_set(cmd,  SPEED_10);
-	cmd->duplex = DUPLEX_HALF;
-	cmd->port = PORT_OTHER;
-	cmd->autoneg = AUTONEG_DISABLE;
-
-	return 0;
-}
-
-static const struct ethtool_ops ops = {
-	.get_drvinfo = qcaspi_get_drvinfo,
-	.get_link = ethtool_op_get_link,
-	.get_settings = qcaspi_get_settings,
-};
-
 static int
 qcaspi_netdev_set_mac_address(struct net_device *dev, void *addr)
 {
@@ -829,7 +797,7 @@ qcaspi_netdev_setup(struct net_device *dev)
 	ether_setup(dev);
 
 	dev->netdev_ops = &qcaspi_netdev_ops;
-	SET_ETHTOOL_OPS(dev, &ops);
+	qcaspi_set_ethtool_ops(dev);
 	dev->watchdog_timeo = QCASPI_TX_TIMEOUT;
 	dev->flags = IFF_MULTICAST;
 	dev->tx_queue_len = 100;
