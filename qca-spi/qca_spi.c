@@ -51,9 +51,6 @@
 #include "qca_framing.h"
 #include "qca_spi.h"
 
-#define DRV_VERSION "0.2.4-i"
-#define DRV_NAME    "qcaspi"
-
 #define MAX_DMA_BURST_LEN 5000
 
 /*   Modules parameters     */
@@ -582,7 +579,7 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	if (qca->irq < 0) {
 		netdev_err(dev, "%s: failed to get IRQ from gpio %d: %d!\n",
-			DRV_NAME, qca->intr_gpio, qca->irq);
+			QCASPI_DRV_NAME, qca->intr_gpio, qca->irq);
 		return qca->irq;
 	}
 
@@ -597,7 +594,7 @@ qcaspi_netdev_open(struct net_device *dev)
 
 	if (IS_ERR(qca->spi_thread)) {
 		netdev_err(dev, "%s: unable to start kernel thread.\n",
-				DRV_NAME);
+				QCASPI_DRV_NAME);
 		return PTR_ERR(qca->spi_thread);
 	}
 
@@ -605,7 +602,7 @@ qcaspi_netdev_open(struct net_device *dev)
 				IRQF_TRIGGER_RISING, dev->name, qca);
 	if (ret) {
 		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
-				DRV_NAME, qca->irq, ret);
+				QCASPI_DRV_NAME, qca->irq, ret);
 		kthread_stop(qca->spi_thread);
 		return ret;
 	}
@@ -771,8 +768,8 @@ qcaspi_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *p)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 
-	strlcpy(p->driver, DRV_NAME, sizeof(p->driver));
-	strlcpy(p->version, DRV_VERSION, sizeof(p->version));
+	strlcpy(p->driver, QCASPI_DRV_NAME, sizeof(p->driver));
+	strlcpy(p->version, QCASPI_DRV_VERSION, sizeof(p->version));
 	strlcpy(p->fw_version, "QCA7000", sizeof(p->fw_version));
 	strlcpy(p->bus_info, dev_name(&qca->spi_dev->dev),
 		sizeof(p->bus_info));
@@ -875,7 +872,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 
 	dev_info(&spi_device->dev, "SPI device probe (version %s)\n",
-		DRV_VERSION);
+		QCASPI_DRV_VERSION);
 
 	if (of_find_property(spi_device->dev.of_node,
 		"qca,legacy-mode", NULL)) {
@@ -1002,7 +999,7 @@ MODULE_DEVICE_TABLE(spi, qca_spi_id);
 
 static struct spi_driver qca_spi_driver = {
 	.driver	= {
-		.name	= DRV_NAME,
+		.name	= QCASPI_DRV_NAME,
 		.owner	= THIS_MODULE,
 		.of_match_table = qca_spi_of_match,
 	},
@@ -1016,5 +1013,5 @@ MODULE_DESCRIPTION("Qualcomm Atheros SPI Driver");
 MODULE_AUTHOR("Qualcomm Atheros Communications");
 MODULE_AUTHOR("Stefan Wahren <stefan.wahren@i2se.com>");
 MODULE_LICENSE("Dual BSD/GPL");
-MODULE_VERSION(DRV_VERSION);
+MODULE_VERSION(QCASPI_DRV_VERSION);
 
