@@ -56,17 +56,17 @@ struct txq {
 };
 
 struct qcaspi_stats {
-	unsigned long trig_reset;
-	unsigned long device_reset;
-	unsigned long reset_timeout;
-	unsigned long read_err;
-	unsigned long write_err;
-	unsigned long read_buf_err;
-	unsigned long write_buf_err;
-	unsigned long out_of_mem;
-	unsigned long write_buf_miss;
-	unsigned long queue_full;
-	unsigned long spi_err;
+	u64 trig_reset;
+	u64 device_reset;
+	u64 reset_timeout;
+	u64 read_err;
+	u64 write_err;
+	u64 read_buf_err;
+	u64 write_buf_err;
+	u64 out_of_mem;
+	u64 write_buf_miss;
+	u64 queue_full;
+	u64 spi_err;
 };
 
 struct qcaspi {

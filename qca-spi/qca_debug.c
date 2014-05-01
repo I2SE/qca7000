@@ -72,17 +72,17 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 {
 	struct qcaspi *qca = s->private;
 
-	seq_printf(s, "Triggered resets    : %lu\n", qca->stats.trig_reset);
-	seq_printf(s, "Device resets       : %lu\n", qca->stats.device_reset);
-	seq_printf(s, "Reset timeouts      : %lu\n", qca->stats.reset_timeout);
-	seq_printf(s, "Read errors         : %lu\n", qca->stats.read_err);
-	seq_printf(s, "Write errors        : %lu\n", qca->stats.write_err);
-	seq_printf(s, "Read buffer errors  : %lu\n", qca->stats.read_buf_err);
-	seq_printf(s, "Write buffer errors : %lu\n", qca->stats.write_buf_err);
-	seq_printf(s, "Out of memory       : %lu\n", qca->stats.out_of_mem);
-	seq_printf(s, "Write buffer misses : %lu\n", qca->stats.write_buf_miss);
-	seq_printf(s, "Transmit queue full : %lu\n", qca->stats.queue_full);
-	seq_printf(s, "SPI errors          : %lu\n", qca->stats.spi_err);
+	seq_printf(s, "Triggered resets    : %llu\n", qca->stats.trig_reset);
+	seq_printf(s, "Device resets       : %llu\n", qca->stats.device_reset);
+	seq_printf(s, "Reset timeouts      : %llu\n", qca->stats.reset_timeout);
+	seq_printf(s, "Read errors         : %llu\n", qca->stats.read_err);
+	seq_printf(s, "Write errors        : %llu\n", qca->stats.write_err);
+	seq_printf(s, "Read buffer errors  : %llu\n", qca->stats.read_buf_err);
+	seq_printf(s, "Write buffer errors : %llu\n", qca->stats.write_buf_err);
+	seq_printf(s, "Out of memory       : %llu\n", qca->stats.out_of_mem);
+	seq_printf(s, "Write buffer misses : %llu\n", qca->stats.write_buf_miss);
+	seq_printf(s, "Transmit queue full : %llu\n", qca->stats.queue_full);
+	seq_printf(s, "SPI errors          : %llu\n", qca->stats.spi_err);
 
 	return 0;
 }
