@@ -889,10 +889,6 @@ qca_spi_probe(struct spi_device *spi_device)
 		"qca,legacy-mode", &prop) == 0)
 		qcaspi_legacy_mode = prop;
 
-	if (of_property_read_u16(spi_device->dev.of_node,
-		"linux,burst-length", &prop) == 0)
-		qcaspi_burst_len = prop;
-
 	if (of_find_property(spi_device->dev.of_node,
 		"linux,pluggable-connection", NULL)) {
 		pluggable = true;

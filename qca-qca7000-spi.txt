@@ -18,9 +18,6 @@ Optional properties:
 - qca,legacy-mode : Should specify the data transfer mode of the QCA7000
   (0 = burst mode, 1 = legacy mode). Missing the property will use the
   burst mode.
-- linux,burst-length : Number of data bytes per burst. Numbers smaller than 1
-  or greater than 5000 are invalid. Missing the property will set the
-  burst length to 5000 bytes. This property has only an effect in burst mode.
 - linux,pluggable-connection : Should be set to skip signature check while
   probing. This property is useful if the SPI master and QCA7000 are not on the
   same board.
@@ -45,7 +42,6 @@ ssp2: ssp@80014000 {
 		intr-gpios = <&gpio3 25 0>;       /* GPIO3_25 */
 		qca,legacy-mode = <0>;            /* Burst mode */
 		local-mac-address = [ A0 B0 C0 D0 E0 F0 ];
-		linux,burst-length = <5000>;
 		linux,pluggable-connection;
 	};
 };
