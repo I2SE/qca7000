@@ -64,12 +64,6 @@ static int qcaspi_clkspeed = QCASPI_CLK_SPEED;
 module_param(qcaspi_clkspeed, int, 0);
 MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
 
-#define QCASPI_LEGACY_MODE_MIN 0
-#define QCASPI_LEGACY_MODE_MAX 1
-static int qcaspi_legacy_mode = QCASPI_LEGACY_MODE_MIN;
-module_param(qcaspi_legacy_mode, int, 0);
-MODULE_PARM_DESC(qcaspi_legacy_mode, "Turn on/off legacy mode.");
-
 #define QCASPI_BURST_LEN_MIN 1
 #define QCASPI_BURST_LEN_MAX MAX_DMA_BURST_LEN
 static int qcaspi_burst_len = MAX_DMA_BURST_LEN;
@@ -730,7 +724,6 @@ qcaspi_netdev_init(struct net_device *dev)
 	dev->type = ARPHRD_ETHER;
 	qca->irq = 0;
 	qca->clkspeed = qcaspi_clkspeed;
-	qca->legacy_mode = qcaspi_legacy_mode;
 	qca->burst_len = qcaspi_burst_len;
 	qca->spi_thread = NULL;
 	qca->buffer_size = (dev->mtu + VLAN_ETH_HLEN + QCAFRM_HEADER_LEN +
@@ -871,8 +864,8 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
 	bool pluggable = false;
+	u8 legacy_mode = 0;
 	u16 signature;
-	u16 prop = 0;
 	int ret;
 	const char *mac;
 
@@ -884,10 +877,10 @@ qca_spi_probe(struct spi_device *spi_device)
 	dev_info(&spi_device->dev, "SPI device probe (version %s)\n",
 		DRV_VERSION);
 
-	/* TODO: Make module parameter higher prio as device tree */
-	if (of_property_read_u16(spi_device->dev.of_node,
-		"qca,legacy-mode", &prop) == 0)
-		qcaspi_legacy_mode = prop;
+	if (of_find_property(spi_device->dev.of_node,
+		"qca,legacy-mode", NULL)) {
+		legacy_mode = 1;
+	}
 
 	if (of_find_property(spi_device->dev.of_node,
 		"linux,pluggable-connection", NULL)) {
@@ -912,16 +905,14 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
 	    (qcaspi_clkspeed > QCASPI_CLK_SPEED_MAX) ||
-	    (qcaspi_legacy_mode < QCASPI_LEGACY_MODE_MIN) ||
-	    (qcaspi_legacy_mode > QCASPI_LEGACY_MODE_MAX) ||
 	    (qcaspi_burst_len < QCASPI_BURST_LEN_MIN) ||
 	    (qcaspi_burst_len > QCASPI_BURST_LEN_MAX)) {
-		dev_info(&spi_device->dev, "Invalid parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
-			qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
+		dev_info(&spi_device->dev, "Invalid parameters (clkspeed=%d, burst_len=%d)\n",
+			qcaspi_clkspeed, qcaspi_burst_len);
 		return -EINVAL;
 	}
-	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, legacy_mode=%d, burst_len=%d)\n",
-	       qcaspi_clkspeed, qcaspi_legacy_mode, qcaspi_burst_len);
+	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, burst_len=%d)\n",
+	       qcaspi_clkspeed, qcaspi_burst_len);
 
 	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
@@ -945,6 +936,7 @@ qca_spi_probe(struct spi_device *spi_device)
 	qca->net_dev = qcaspi_devs;
 	qca->spi_dev = spi_device;
 	qca->intr_gpio = intr_gpio;
+	qca->legacy_mode = legacy_mode;
 
 	mac = of_get_mac_address(spi_device->dev.of_node);
 
