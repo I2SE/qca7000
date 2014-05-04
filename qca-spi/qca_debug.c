@@ -29,6 +29,20 @@
 #include "qca_7k.h"
 #include "qca_spi.h"
 
+static const u16 qcaspi_spi_regs[] = {
+	SPI_REG_BFR_SIZE,
+	SPI_REG_WRBUF_SPC_AVA,
+	SPI_REG_RDBUF_BYTE_AVA,
+	SPI_REG_SPI_CONFIG,
+	SPI_REG_SPI_STATUS,
+	SPI_REG_INTR_CAUSE,
+	SPI_REG_INTR_ENABLE,
+	SPI_REG_RDBUF_WATERMARK,
+	SPI_REG_WRBUF_WATERMARK,
+	SPI_REG_SIGNATURE,
+	SPI_REG_ACTION_CTRL
+};
+
 /* The order of these strings must match the order of the fields in
  * struct qcaspi_stats
  * See qca_spi.h
@@ -306,6 +320,29 @@ qcaspi_get_sset_count(struct net_device *dev, int sset)
 	}
 }
 
+static int
+qcaspi_get_regs_len(struct net_device *dev)
+{
+	return ARRAY_SIZE(qcaspi_spi_regs) * sizeof(u32);
+}
+
+static void
+qcaspi_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
+{
+	struct qcaspi *qca = netdev_priv(dev);
+	u32 *regs_buff = p;
+	int i;
+
+	regs->version = 1;
+
+	for (i = 0; i < ARRAY_SIZE(qcaspi_spi_regs); i++) {
+		u16 value;
+
+		qcaspi_read_register(qca, qcaspi_spi_regs[i], &value);
+		regs_buff[i] = value;
+	}
+}
+
 static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_drvinfo = qcaspi_get_drvinfo,
 	.get_link = ethtool_op_get_link,
@@ -313,6 +350,8 @@ static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_ethtool_stats = qcaspi_get_ethtool_stats,
 	.get_strings = qcaspi_get_strings,
 	.get_sset_count = qcaspi_get_sset_count,
+	.get_regs_len = qcaspi_get_regs_len,
+	.get_regs = qcaspi_get_regs,
 };
 
 void qcaspi_set_ethtool_ops(struct net_device *dev)
