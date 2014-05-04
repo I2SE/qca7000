@@ -29,6 +29,24 @@
 #include "qca_7k.h"
 #include "qca_spi.h"
 
+/* The order of these strings must match the order of the fields in
+ * struct qcaspi_stats
+ * See qca_spi.h
+ */
+static const char qcaspi_gstrings_stats[][ETH_GSTRING_LEN] = {
+	"Triggered resets",
+	"Device resets",
+	"Reset timeouts",
+	"Read errors",
+	"Write errors",
+	"Read buffer errors",
+	"Write buffer errors",
+	"Out of memory",
+	"Write buffer misses",
+	"Transmit queue full",
+	"SPI errors",
+};
+
 #ifdef CONFIG_DEBUG_FS
 
 /*   Dumps the contents of all SPI slave registers.        */
@@ -255,10 +273,46 @@ qcaspi_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	return 0;
 }
 
+static void
+qcaspi_get_ethtool_stats(struct net_device *dev, struct ethtool_stats *estats, u64 *data)
+{
+	struct qcaspi *qca = netdev_priv(dev);
+	struct qcaspi_stats *st = &qca->stats;
+
+	memcpy(data, st, ARRAY_SIZE(qcaspi_gstrings_stats) * sizeof(u64));
+}
+
+static void
+qcaspi_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
+{
+	switch (stringset) {
+	case ETH_SS_STATS:
+		memcpy(buf, &qcaspi_gstrings_stats, sizeof(qcaspi_gstrings_stats));
+		break;
+	default:
+		WARN_ON(1);
+		break;
+	}
+}
+
+static int
+qcaspi_get_sset_count(struct net_device *dev, int sset)
+{
+	switch (sset) {
+	case ETH_SS_STATS:
+		return ARRAY_SIZE(qcaspi_gstrings_stats);
+	default:
+		return -EINVAL;
+	}
+}
+
 static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_drvinfo = qcaspi_get_drvinfo,
 	.get_link = ethtool_op_get_link,
 	.get_settings = qcaspi_get_settings,
+	.get_ethtool_stats = qcaspi_get_ethtool_stats,
+	.get_strings = qcaspi_get_strings,
+	.get_sset_count = qcaspi_get_sset_count,
 };
 
 void qcaspi_set_ethtool_ops(struct net_device *dev)
