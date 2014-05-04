@@ -130,7 +130,7 @@ qcaspi_info_show(struct seq_file *s, void *what)
 
 	seq_puts(s, "TX queue state   : ");
 
-	if (qca->txq.skb[qca->txq.head])
+	if (qca->txq.skb[qca->txq.head] == NULL)
 		seq_puts(s, "empty");
 	else if (qca->txq.skb[qca->txq.tail])
 		seq_puts(s, "full");
