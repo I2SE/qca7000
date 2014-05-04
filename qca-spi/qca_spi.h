@@ -39,7 +39,7 @@
 
 #define QCASPI_GOOD_SIGNATURE 0xAA55
 
-#define TX_QUEUE_LEN 10
+#define TX_RING_LEN 10
 
 /* sync related constants */
 #define QCASPI_SYNC_UNKNOWN 0
@@ -52,8 +52,8 @@
 #define QCASPI_EVENT_UPDATE 0
 #define QCASPI_EVENT_CPUON  1
 
-struct txq {
-	struct sk_buff *skb[TX_QUEUE_LEN];
+struct tx_ring {
+	struct sk_buff *skb[TX_RING_LEN];
 	u32 head;
 	u32 tail;
 };
@@ -68,7 +68,7 @@ struct qcaspi_stats {
 	u64 write_buf_err;
 	u64 out_of_mem;
 	u64 write_buf_miss;
-	u64 queue_full;
+	u64 ring_full;
 	u64 spi_err;
 };
 
@@ -77,7 +77,7 @@ struct qcaspi {
 	struct spi_device *spi_dev;
 	struct task_struct *spi_thread;
 
-	struct txq txq;
+	struct tx_ring txr;
 	struct qcaspi_stats stats;
 
 	struct spi_message spi_msg1;

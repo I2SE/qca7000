@@ -57,7 +57,7 @@ static const char qcaspi_gstrings_stats[][ETH_GSTRING_LEN] = {
 	"Write buffer errors",
 	"Out of memory",
 	"Write buffer misses",
-	"Transmit queue full",
+	"Transmit ring full",
 	"SPI errors",
 };
 
@@ -114,7 +114,7 @@ qcaspi_stats_show(struct seq_file *s, void *what)
 	seq_printf(s, "Write buffer errors : %llu\n", qca->stats.write_buf_err);
 	seq_printf(s, "Out of memory       : %llu\n", qca->stats.out_of_mem);
 	seq_printf(s, "Write buffer misses : %llu\n", qca->stats.write_buf_miss);
-	seq_printf(s, "Transmit queue full : %llu\n", qca->stats.queue_full);
+	seq_printf(s, "Transmit ring full  : %llu\n", qca->stats.ring_full);
 	seq_printf(s, "SPI errors          : %llu\n", qca->stats.spi_err);
 
 	return 0;
@@ -128,11 +128,11 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_printf(s, "RX buffer size   : %lu\n",
 		(unsigned long) qca->buffer_size);
 
-	seq_puts(s, "TX queue state   : ");
+	seq_puts(s, "TX ring state    : ");
 
-	if (qca->txq.skb[qca->txq.head] == NULL)
+	if (qca->txr.skb[qca->txr.head] == NULL)
 		seq_puts(s, "empty");
-	else if (qca->txq.skb[qca->txq.tail])
+	else if (qca->txr.skb[qca->txr.tail])
 		seq_puts(s, "full");
 	else
 		seq_puts(s, "in use");

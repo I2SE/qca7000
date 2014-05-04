@@ -235,21 +235,21 @@ qcaspi_transmit(struct qcaspi *qca)
 
 	qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA, &available);
 
-	while (qca->txq.skb[qca->txq.head]) {
-		pkt_len = qca->txq.skb[qca->txq.head]->len + QCASPI_HW_PKT_LEN;
+	while (qca->txr.skb[qca->txr.head]) {
+		pkt_len = qca->txr.skb[qca->txr.head]->len + QCASPI_HW_PKT_LEN;
 
 		if (available < pkt_len) {
 			qca->stats.write_buf_miss++;
 			break;
 		}
 
-		if (qcaspi_tx_frame(qca, qca->txq.skb[qca->txq.head]) == -1) {
+		if (qcaspi_tx_frame(qca, qca->txr.skb[qca->txr.head]) == -1) {
 			qca->stats.write_err++;
 			return -1;
 		}
 
 		n_stats->tx_packets++;
-		n_stats->tx_bytes += qca->txq.skb[qca->txq.head]->len;
+		n_stats->tx_bytes += qca->txr.skb[qca->txr.head]->len;
 		available -= pkt_len;
 
 		/* remove the skb from the queue */
@@ -257,11 +257,11 @@ qcaspi_transmit(struct qcaspi *qca)
 		 * has been replaced by netif_tx_lock_bh() and so on.
 		 */
 		netif_tx_lock_bh(qca->net_dev);
-		dev_kfree_skb(qca->txq.skb[qca->txq.head]);
-		qca->txq.skb[qca->txq.head] = NULL;
-		qca->txq.head++;
-		if (qca->txq.head >= TX_QUEUE_LEN)
-			qca->txq.head = 0;
+		dev_kfree_skb(qca->txr.skb[qca->txr.head]);
+		qca->txr.skb[qca->txr.head] = NULL;
+		qca->txr.head++;
+		if (qca->txr.head >= TX_RING_LEN)
+			qca->txr.head = 0;
 		netif_wake_queue(qca->net_dev);
 		netif_tx_unlock_bh(qca->net_dev);
 	}
@@ -373,12 +373,12 @@ qcaspi_receive(struct qcaspi *qca)
 	return 0;
 }
 
-/*   Flush the tx queue. This function is only safe to
+/*   Flush the tx ring. This function is only safe to
  *   call from the qcaspi_spi_thread.
  */
 
 void
-qcaspi_flush_txq(struct qcaspi *qca)
+qcaspi_flush_tx_ring(struct qcaspi *qca)
 {
 	int i;
 
@@ -386,12 +386,12 @@ qcaspi_flush_txq(struct qcaspi *qca)
 	 * has been replaced by netif_tx_lock_bh() and so on.
 	 */
 	netif_tx_lock_bh(qca->net_dev);
-	for (i = 0; i < TX_QUEUE_LEN; i++) {
-		if (qca->txq.skb[i])
-			dev_kfree_skb(qca->txq.skb[i]);
-		qca->txq.skb[i] = NULL;
-		qca->txq.tail = 0;
-		qca->txq.head = 0;
+	for (i = 0; i < TX_RING_LEN; i++) {
+		if (qca->txr.skb[i])
+			dev_kfree_skb(qca->txr.skb[i]);
+		qca->txr.skb[i] = NULL;
+		qca->txr.tail = 0;
+		qca->txr.head = 0;
 	}
 	netif_tx_unlock_bh(qca->net_dev);
 }
@@ -481,7 +481,7 @@ qcaspi_spi_thread(void *data)
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		if ((qca->intr_req == qca->intr_svc) &&
-		    (qca->txq.skb[qca->txq.head] == NULL) &&
+		    (qca->txr.skb[qca->txr.head] == NULL) &&
 		    (qca->sync == QCASPI_SYNC_READY))
 			schedule();
 
@@ -489,7 +489,7 @@ qcaspi_spi_thread(void *data)
 
 		netdev_dbg(qca->net_dev, "have work to do. int: %d, tx_skb: %p\n",
 				qca->intr_req - qca->intr_svc,
-				qca->txq.skb[qca->txq.head]);
+				qca->txr.skb[qca->txr.head]);
 
 		qcaspi_qca7k_sync(qca, QCASPI_EVENT_UPDATE);
 
@@ -497,7 +497,7 @@ qcaspi_spi_thread(void *data)
 			netdev_dbg(qca->net_dev, "sync: not ready %u, turn off carrier and flush\n",
 					(unsigned int) qca->sync);
 			netif_carrier_off(qca->net_dev);
-			qcaspi_flush_txq(qca);
+			qcaspi_flush_tx_ring(qca);
 			netif_wake_queue(qca->net_dev);
 			msleep(1000);
 		}
@@ -544,7 +544,7 @@ qcaspi_spi_thread(void *data)
 			end_spi_intr_handling(qca, intr_cause);
 		}
 
-		if (qca->txq.skb[qca->txq.head])
+		if (qca->txr.skb[qca->txr.head])
 			qcaspi_transmit(qca);
 	}
 	set_current_state(TASK_RUNNING);
@@ -582,7 +582,7 @@ qcaspi_netdev_open(struct net_device *dev)
 		return qca->irq;
 	}
 
-	memset(&qca->txq, 0, sizeof(qca->txq));
+	memset(&qca->txr, 0, sizeof(qca->txr));
 	qca->intr_req = (gpio_get_value_cansleep(qca->intr_gpio) ? 1 : 0);
 	qca->intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -624,7 +624,7 @@ qcaspi_netdev_close(struct net_device *dev)
 
 	kthread_stop(qca->spi_thread);
 	qca->spi_thread = NULL;
-	qcaspi_flush_txq(qca);
+	qcaspi_flush_tx_ring(qca);
 
 	return 0;
 }
@@ -642,10 +642,10 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (skb->len < QCAFRM_ETHMINLEN)
 		pad_len = QCAFRM_ETHMINLEN - skb->len;
 
-	if (qca->txq.skb[qca->txq.tail]) {
+	if (qca->txr.skb[qca->txr.tail]) {
 		netdev_warn(qca->net_dev, "queue was unexpectedly full!\n");
 		netif_stop_queue(qca->net_dev);
-		qca->stats.queue_full++;
+		qca->stats.ring_full++;
 		return NETDEV_TX_BUSY;
 	}
 
@@ -678,17 +678,17 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	netdev_dbg(qca->net_dev, "Tx-ing packet: Size: 0x%08x\n",
 			skb->len);
 
-	new_tail = qca->txq.tail + 1;
-	if (new_tail >= TX_QUEUE_LEN)
+	new_tail = qca->txr.tail + 1;
+	if (new_tail >= TX_RING_LEN)
 		new_tail = 0;
 
-	if (qca->txq.skb[new_tail]) {
+	if (qca->txr.skb[new_tail]) {
 		netif_stop_queue(qca->net_dev);
-		qca->stats.queue_full++;
+		qca->stats.ring_full++;
 	}
 
-	qca->txq.skb[qca->txq.tail] = skb;
-	qca->txq.tail = new_tail;
+	qca->txr.skb[qca->txr.tail] = skb;
+	qca->txr.tail = new_tail;
 
 	dev->trans_start = jiffies;
 
@@ -707,7 +707,7 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 			jiffies, jiffies - dev->trans_start);
 	qca->net_dev->stats.tx_errors++;
 	/* wake the queue if there is room */
-	if (qca->txq.skb[qca->txq.tail] == NULL)
+	if (qca->txr.skb[qca->txr.tail] == NULL)
 		netif_wake_queue(dev);
 }
 
