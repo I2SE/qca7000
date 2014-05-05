@@ -387,8 +387,10 @@ qcaspi_flush_tx_ring(struct qcaspi *qca)
 	 */
 	netif_tx_lock_bh(qca->net_dev);
 	for (i = 0; i < TX_RING_LEN; i++) {
-		if (qca->txr.skb[i])
+		if (qca->txr.skb[i]) {
 			dev_kfree_skb(qca->txr.skb[i]);
+			qca->net_dev->stats.tx_dropped++;
+		}
 		qca->txr.skb[i] = NULL;
 		qca->txr.tail = 0;
 		qca->txr.head = 0;
