@@ -66,6 +66,12 @@ static int qcaspi_burst_len = MAX_DMA_BURST_LEN;
 module_param(qcaspi_burst_len, int, 0);
 MODULE_PARM_DESC(qcaspi_burst_len, "Number of data bytes per burst. Use 1-5000.");
 
+#define QCASPI_PLUGGABLE_MIN 0
+#define QCASPI_PLUGGABLE_MAX 1
+static int qcaspi_pluggable = QCASPI_PLUGGABLE_MIN;
+module_param(qcaspi_pluggable, int, 0);
+MODULE_PARM_DESC(qcaspi_pluggable, "Pluggable SPI connection (yes/no).");
+
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 
@@ -832,7 +838,6 @@ qca_spi_probe(struct spi_device *spi_device)
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
 	int intr_gpio = 0;
-	bool pluggable = false;
 	u8 legacy_mode = 0;
 	u16 signature;
 	int ret;
@@ -849,11 +854,6 @@ qca_spi_probe(struct spi_device *spi_device)
 	if (of_find_property(spi_device->dev.of_node,
 		"qca,legacy-mode", NULL)) {
 		legacy_mode = 1;
-	}
-
-	if (of_find_property(spi_device->dev.of_node,
-		"linux,pluggable-connection", NULL)) {
-		pluggable = true;
 	}
 
 	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
@@ -880,8 +880,9 @@ qca_spi_probe(struct spi_device *spi_device)
 			qcaspi_clkspeed, qcaspi_burst_len);
 		return -EINVAL;
 	}
-	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, burst_len=%d)\n",
-	       qcaspi_clkspeed, qcaspi_burst_len);
+
+	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, burst_len=%d, pluggable=%d)\n",
+		qcaspi_clkspeed, qcaspi_burst_len, qcaspi_pluggable);
 
 	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
@@ -920,7 +921,7 @@ qca_spi_probe(struct spi_device *spi_device)
 
 	netif_carrier_off(qca->net_dev);
 
-	if (!pluggable) {
+	if (!qcaspi_pluggable) {
 		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 		qcaspi_read_register(qca, SPI_REG_SIGNATURE, &signature);
 
