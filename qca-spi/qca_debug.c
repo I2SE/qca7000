@@ -343,6 +343,15 @@ qcaspi_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
 	}
 }
 
+static void
+qcaspi_get_ringparam(struct net_device *dev, struct ethtool_ringparam *ring)
+{
+	ring->rx_max_pending = 4;
+	ring->tx_max_pending = TX_RING_LEN;
+	ring->rx_pending = 4;
+	ring->tx_pending = TX_RING_LEN;
+}
+
 static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_drvinfo = qcaspi_get_drvinfo,
 	.get_link = ethtool_op_get_link,
@@ -352,6 +361,7 @@ static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_sset_count = qcaspi_get_sset_count,
 	.get_regs_len = qcaspi_get_regs_len,
 	.get_regs = qcaspi_get_regs,
+	.get_ringparam = qcaspi_get_ringparam,
 };
 
 void qcaspi_set_ethtool_ops(struct net_device *dev)
