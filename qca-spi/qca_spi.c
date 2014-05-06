@@ -58,7 +58,7 @@
 #define QCASPI_CLK_SPEED     8000000
 static int qcaspi_clkspeed = QCASPI_CLK_SPEED;
 module_param(qcaspi_clkspeed, int, 0);
-MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz)");
+MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz). Use 1000000-16000000.");
 
 #define QCASPI_BURST_LEN_MIN 1
 #define QCASPI_BURST_LEN_MAX MAX_DMA_BURST_LEN
