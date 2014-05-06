@@ -232,6 +232,7 @@ qcaspi_transmit(struct qcaspi *qca)
 	struct net_device_stats *n_stats = &qca->net_dev->stats;
 	u16 available = 0;
 	u32 pkt_len;
+	u32 new_head;
 
 	qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA, &available);
 
@@ -259,9 +260,10 @@ qcaspi_transmit(struct qcaspi *qca)
 		netif_tx_lock_bh(qca->net_dev);
 		dev_kfree_skb(qca->txr.skb[qca->txr.head]);
 		qca->txr.skb[qca->txr.head] = NULL;
-		qca->txr.head++;
-		if (qca->txr.head >= TX_RING_LEN)
-			qca->txr.head = 0;
+		new_head = qca->txr.head + 1;
+		if (new_head >= TX_RING_LEN)
+			new_head = 0;
+		qca->txr.head = new_head;
 		netif_wake_queue(qca->net_dev);
 		netif_tx_unlock_bh(qca->net_dev);
 	}
