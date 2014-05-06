@@ -34,7 +34,7 @@
 
 #include "qca_framing.h"
 
-#define QCASPI_DRV_VERSION "0.2.4-i"
+#define QCASPI_DRV_VERSION "0.2.5-i"
 #define QCASPI_DRV_NAME    "qcaspi"
 
 #define QCASPI_GOOD_SIGNATURE 0xAA55
