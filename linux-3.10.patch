@@ -6,13 +6,54 @@ Add config and build options for the QCA7000 SPI protocol driver.
 Signed-off-by: Stefan Wahren <stefan.wahren@i2se.com>
 ---
 diff --git a/drivers/net/ethernet/Kconfig b/drivers/net/ethernet/Kconfig
-index ed956e0..87aff62 100644
+index ed956e0..6459d83 100644
 --- a/drivers/net/ethernet/Kconfig
 +++ b/drivers/net/ethernet/Kconfig
-@@ -135,6 +135,16 @@ config ETHOC
+@@ -135,6 +135,7 @@ config ETHOC
  source "drivers/net/ethernet/packetengines/Kconfig"
  source "drivers/net/ethernet/pasemi/Kconfig"
  source "drivers/net/ethernet/qlogic/Kconfig"
++source "drivers/net/ethernet/qualcomm/Kconfig"
+ source "drivers/net/ethernet/realtek/Kconfig"
+ source "drivers/net/ethernet/renesas/Kconfig"
+ source "drivers/net/ethernet/rdc/Kconfig"
+diff --git a/drivers/net/ethernet/Makefile b/drivers/net/ethernet/Makefile
+index 8268d85..f55ca92 100644
+--- a/drivers/net/ethernet/Makefile
++++ b/drivers/net/ethernet/Makefile
+@@ -53,6 +53,7 @@ obj-$(CONFIG_ETHOC) += ethoc.o
+ obj-$(CONFIG_NET_PACKET_ENGINE) += packetengines/
+ obj-$(CONFIG_NET_VENDOR_PASEMI) += pasemi/
+ obj-$(CONFIG_NET_VENDOR_QLOGIC) += qlogic/
++obj-$(CONFIG_NET_VENDOR_QUALCOMM) += qualcomm/
+ obj-$(CONFIG_NET_VENDOR_REALTEK) += realtek/
+ obj-$(CONFIG_SH_ETH) += renesas/
+ obj-$(CONFIG_NET_VENDOR_RDC) += rdc/
+diff --git a/drivers/net/ethernet/qualcomm/Kconfig b/drivers/net/ethernet/qualcomm/Kconfig
+new file mode 100644
+index 0000000..f3a4714
+--- /dev/null
++++ b/drivers/net/ethernet/qualcomm/Kconfig
+@@ -0,0 +1,30 @@
++#
++# Qualcomm network device configuration
++#
++
++config NET_VENDOR_QUALCOMM
++	bool "Qualcomm devices"
++	default y
++	depends on SPI_MASTER && OF_GPIO
++	---help---
++	  If you have a network (Ethernet) card belonging to this class, say Y
++	  and read the Ethernet-HOWTO, available from
++	  <http://www.tldp.org/docs.html#howto>.
++
++	  Note that the answer to this question doesn't directly affect the
++	  kernel: saying N will just cause the configurator to skip all
++	  the questions about Qualcomm cards. If you say Y, you will be asked
++	  for your specific card in the following questions.
++
++if NET_VENDOR_QUALCOMM
 +
 +config QCA7000
 +	tristate "Qualcomm Atheros QCA7000 support"
@@ -23,19 +64,19 @@ index ed956e0..87aff62 100644
 +	  To compile this driver as a module, choose M here. The module
 +	  will be called qcaspi.
 +
- source "drivers/net/ethernet/realtek/Kconfig"
- source "drivers/net/ethernet/renesas/Kconfig"
- source "drivers/net/ethernet/rdc/Kconfig"
-diff --git a/drivers/net/ethernet/Makefile b/drivers/net/ethernet/Makefile
-index 8268d85..2e0f67f 100644
---- a/drivers/net/ethernet/Makefile
-+++ b/drivers/net/ethernet/Makefile
-@@ -52,6 +52,8 @@ obj-$(CONFIG_NET_VENDOR_OKI) += oki-semi/
- obj-$(CONFIG_ETHOC) += ethoc.o
- obj-$(CONFIG_NET_PACKET_ENGINE) += packetengines/
- obj-$(CONFIG_NET_VENDOR_PASEMI) += pasemi/
++endif # NET_VENDOR_QUALCOMM
+diff --git a/drivers/net/ethernet/qualcomm/Makefile b/drivers/net/ethernet/qualcomm/Makefile
+new file mode 100644
+index 0000000..9da2d75
+--- /dev/null
++++ b/drivers/net/ethernet/qualcomm/Makefile
+@@ -0,0 +1,6 @@
++#
++# Makefile for the Qualcomm network device drivers.
++#
++
 +obj-$(CONFIG_QCA7000) += qcaspi.o
 +qcaspi-objs := qca_spi.o qca_framing.o qca_7k.o qca_debug.o
- obj-$(CONFIG_NET_VENDOR_QLOGIC) += qlogic/
- obj-$(CONFIG_NET_VENDOR_REALTEK) += realtek/
- obj-$(CONFIG_SH_ETH) += renesas/
+-- 
+1.7.9.5
+
