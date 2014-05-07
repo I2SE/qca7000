@@ -22,7 +22,6 @@
 
 #include <linux/debugfs.h>
 #include <linux/ethtool.h>
-#include <linux/gpio.h>
 #include <linux/seq_file.h>
 #include <linux/types.h>
 
@@ -158,13 +157,11 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_puts(s, ")\n");
 
 	seq_printf(s, "IRQ              : %d\n",
-		qca->irq);
+		qca->spi_dev->irq);
 	seq_printf(s, "INTR REQ         : %u\n",
 		qca->intr_req);
 	seq_printf(s, "INTR SVC         : %u\n",
 		qca->intr_svc);
-	seq_printf(s, "INTR GPIO        : %d\n",
-		gpio_get_value(qca->intr_gpio));
 
 	seq_printf(s, "SPI max speed    : %lu\n",
 		(unsigned long) qca->spi_dev->max_speed_hz);
