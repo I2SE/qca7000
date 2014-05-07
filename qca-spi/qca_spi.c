@@ -24,7 +24,6 @@
 
 #include <linux/errno.h>
 #include <linux/etherdevice.h>
-#include <linux/gpio.h>
 #include <linux/if_arp.h>
 #include <linux/if_ether.h>
 #include <linux/init.h>
@@ -37,7 +36,6 @@
 #include <linux/netdevice.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
-#include <linux/of_gpio.h>
 #include <linux/of_net.h>
 #include <linux/sched.h>
 #include <linux/skbuff.h>
@@ -584,16 +582,8 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (!qca)
 		return -EINVAL;
 
-	qca->irq = gpio_to_irq(qca->intr_gpio);
-
-	if (qca->irq < 0) {
-		netdev_err(dev, "%s: failed to get IRQ from gpio %d: %d!\n",
-			QCASPI_DRV_NAME, qca->intr_gpio, qca->irq);
-		return qca->irq;
-	}
-
 	memset(&qca->txr, 0, sizeof(qca->txr));
-	qca->intr_req = (gpio_get_value_cansleep(qca->intr_gpio) ? 1 : 0);
+	qca->intr_req = 1;
 	qca->intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
 	qcafrm_fsm_init(&qca->frm_handle);
@@ -607,11 +597,11 @@ qcaspi_netdev_open(struct net_device *dev)
 		return PTR_ERR(qca->spi_thread);
 	}
 
-	ret = request_irq(qca->irq, qcaspi_intr_handler,
-				IRQF_TRIGGER_RISING, dev->name, qca);
+	ret = request_irq(qca->spi_dev->irq, qcaspi_intr_handler, 0,
+			dev->name, qca);
 	if (ret) {
 		netdev_err(dev, "%s: unable to get IRQ %d (irqval=%d).\n",
-				QCASPI_DRV_NAME, qca->irq, ret);
+				QCASPI_DRV_NAME, qca->spi_dev->irq, ret);
 		kthread_stop(qca->spi_thread);
 		return ret;
 	}
@@ -629,8 +619,7 @@ qcaspi_netdev_close(struct net_device *dev)
 	netif_stop_queue(dev);
 
 	qcaspi_write_register(qca, SPI_REG_INTR_ENABLE, 0);
-	free_irq(qca->irq, qca);
-	qca->irq = 0;
+	free_irq(qca->spi_dev->irq, qca);
 
 	kthread_stop(qca->spi_thread);
 	qca->spi_thread = NULL;
@@ -728,7 +717,6 @@ qcaspi_netdev_init(struct net_device *dev)
 
 	dev->mtu = QCASPI_MTU;
 	dev->type = ARPHRD_ETHER;
-	qca->irq = 0;
 	qca->clkspeed = qcaspi_clkspeed;
 	qca->burst_len = qcaspi_burst_len;
 	qca->spi_thread = NULL;
@@ -837,10 +825,8 @@ qca_spi_probe(struct spi_device *spi_device)
 {
 	struct qcaspi *qca = NULL;
 	struct net_device *qcaspi_devs = NULL;
-	int intr_gpio = 0;
 	u8 legacy_mode = 0;
 	u16 signature;
-	int ret;
 	const char *mac;
 
 	if (!spi_device->dev.of_node) {
@@ -854,22 +840,6 @@ qca_spi_probe(struct spi_device *spi_device)
 	if (of_find_property(spi_device->dev.of_node,
 		"qca,legacy-mode", NULL)) {
 		legacy_mode = 1;
-	}
-
-	intr_gpio = of_get_named_gpio(spi_device->dev.of_node,
-			"intr-gpios", 0);
-
-	if (!gpio_is_valid(intr_gpio)) {
-		dev_err(&spi_device->dev, "Missing interrupt gpio\n");
-		return -EINVAL;
-	}
-
-	ret = gpio_request_one(intr_gpio, GPIOF_IN, "qca7k_intr0");
-
-	if (ret < 0) {
-		dev_err(&spi_device->dev,
-		"Failed to request interrupt gpio %d: %d!\n",
-		intr_gpio, ret);
 	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
@@ -917,7 +887,6 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 	qca->net_dev = qcaspi_devs;
 	qca->spi_dev = spi_device;
-	qca->intr_gpio = intr_gpio;
 	qca->legacy_mode = legacy_mode;
 
 	mac = of_get_mac_address(spi_device->dev.of_node);
@@ -966,9 +935,6 @@ qca_spi_remove(struct spi_device *spi_device)
 	struct qcaspi *qca = netdev_priv(qcaspi_devs);
 
 	qcaspi_remove_device_debugfs(qca);
-
-	if (gpio_is_valid(qca->intr_gpio))
-		gpio_free(qca->intr_gpio);
 
 	unregister_netdev(qcaspi_devs);
 	free_netdev(qcaspi_devs);
