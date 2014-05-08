@@ -1,7 +1,7 @@
 * Qualcomm QCA7000 (Ethernet over SPI protocol)
 
 Note: The QCA7000 is useable as a SPI device. In this case it must be defined
-as a child of a spi master in the device tree.
+as a child of a SPI master in the device tree.
 
 Required properties:
 - compatible : Should be "qca,qca7000"
@@ -18,9 +18,10 @@ Optional properties:
   the property will set the SPI frequency to 8000000 Hertz.
 - local-mac-address: 6 bytes, mac address
 - qca,legacy-mode : Set the SPI data transfer of the QCA7000 to legacy mode.
-  In this mode the SPI master must do a chip select toogle between each data
+  In this mode the SPI master must toggle the chip select between each data
   word. In burst mode these gaps aren't necessary, which is faster.
-  Missing the property will use the burst mode.
+  This setting depends on how the QCA7000 is setup via GPIO pin strapping.
+  If the property is missing the driver defaults to burst mode.
 
 Example:
 
