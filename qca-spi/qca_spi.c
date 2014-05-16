@@ -236,7 +236,7 @@ qcaspi_transmit(struct qcaspi *qca)
 	struct net_device_stats *n_stats = &qca->net_dev->stats;
 	u16 available = 0;
 	u32 pkt_len;
-	u32 new_head;
+	u16 new_head;
 
 	qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA, &available);
 
@@ -634,7 +634,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	u32 frame_len;
 	u8 *ptmp;
 	struct qcaspi *qca = netdev_priv(dev);
-	u32 new_tail;
+	u16 new_tail;
 	struct sk_buff *tskb;
 	u8 pad_len = 0;
 

@@ -54,8 +54,8 @@
 
 struct tx_ring {
 	struct sk_buff *skb[TX_RING_LEN];
-	u32 head;
-	u32 tail;
+	u16 head;
+	u16 tail;
 };
 
 struct qcaspi_stats {
