@@ -395,12 +395,12 @@ qcaspi_flush_tx_ring(struct qcaspi *qca)
 	for (i = 0; i < TX_RING_LEN; i++) {
 		if (qca->txr.skb[i]) {
 			dev_kfree_skb(qca->txr.skb[i]);
+			qca->txr.skb[i] = NULL;
 			qca->net_dev->stats.tx_dropped++;
 		}
-		qca->txr.skb[i] = NULL;
-		qca->txr.tail = 0;
-		qca->txr.head = 0;
 	}
+	qca->txr.tail = 0;
+	qca->txr.head = 0;
 	netif_tx_unlock_bh(qca->net_dev);
 }
 
