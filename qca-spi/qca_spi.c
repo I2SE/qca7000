@@ -265,7 +265,7 @@ qcaspi_transmit(struct qcaspi *qca)
 		dev_kfree_skb(qca->txr.skb[qca->txr.head]);
 		qca->txr.skb[qca->txr.head] = NULL;
 		new_head = qca->txr.head + 1;
-		if (new_head >= TX_RING_LEN)
+		if (new_head >= qca->txr.count)
 			new_head = 0;
 		qca->txr.head = new_head;
 		netif_wake_queue(qca->net_dev);
@@ -392,7 +392,7 @@ qcaspi_flush_tx_ring(struct qcaspi *qca)
 	 * has been replaced by netif_tx_lock_bh() and so on.
 	 */
 	netif_tx_lock_bh(qca->net_dev);
-	for (i = 0; i < TX_RING_LEN; i++) {
+	for (i = 0; i < TX_RING_MAX_LEN; i++) {
 		if (qca->txr.skb[i]) {
 			dev_kfree_skb(qca->txr.skb[i]);
 			qca->txr.skb[i] = NULL;
@@ -582,7 +582,6 @@ qcaspi_netdev_open(struct net_device *dev)
 	if (!qca)
 		return -EINVAL;
 
-	memset(&qca->txr, 0, sizeof(qca->txr));
 	qca->intr_req = 1;
 	qca->intr_svc = 0;
 	qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -678,7 +677,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 			skb->len);
 
 	new_tail = qca->txr.tail + 1;
-	if (new_tail >= TX_RING_LEN)
+	if (new_tail >= qca->txr.count)
 		new_tail = 0;
 
 	if (qca->txr.skb[new_tail]) {
@@ -812,6 +811,9 @@ qcaspi_netdev_setup(struct net_device *dev)
 	spi_message_init(&qca->spi_msg2);
 	spi_message_add_tail(&qca->spi_xfer2[0], &qca->spi_msg2);
 	spi_message_add_tail(&qca->spi_xfer2[1], &qca->spi_msg2);
+
+	memset(&qca->txr, 0, sizeof(qca->txr));
+	qca->txr.count = TX_RING_MAX_LEN;
 }
 
 static const struct of_device_id qca_spi_of_match[] = {

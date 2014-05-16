@@ -39,7 +39,8 @@
 
 #define QCASPI_GOOD_SIGNATURE 0xAA55
 
-#define TX_RING_LEN 10
+#define TX_RING_MAX_LEN 10
+#define TX_RING_MIN_LEN 2
 
 /* sync related constants */
 #define QCASPI_SYNC_UNKNOWN 0
@@ -53,9 +54,10 @@
 #define QCASPI_EVENT_CPUON  1
 
 struct tx_ring {
-	struct sk_buff *skb[TX_RING_LEN];
+	struct sk_buff *skb[TX_RING_MAX_LEN];
 	u16 head;
 	u16 tail;
+	u16 count;
 };
 
 struct qcaspi_stats {
@@ -104,5 +106,8 @@ struct qcaspi {
 	u8 legacy_mode;
 	u16 burst_len;
 };
+
+int qcaspi_netdev_open(struct net_device *dev);
+int qcaspi_netdev_close(struct net_device *dev);
 
 #endif /* _QCA_SPI_H */

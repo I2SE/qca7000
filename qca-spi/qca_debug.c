@@ -308,10 +308,34 @@ qcaspi_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
 static void
 qcaspi_get_ringparam(struct net_device *dev, struct ethtool_ringparam *ring)
 {
+	struct qcaspi *qca = netdev_priv(dev);
+
 	ring->rx_max_pending = 4;
-	ring->tx_max_pending = TX_RING_LEN;
+	ring->tx_max_pending = TX_RING_MAX_LEN;
 	ring->rx_pending = 4;
-	ring->tx_pending = TX_RING_LEN;
+	ring->tx_pending = qca->txr.count;
+}
+
+static int
+qcaspi_set_ringparam(struct net_device *dev, struct ethtool_ringparam *ring)
+{
+	struct qcaspi *qca = netdev_priv(dev);
+
+	if ((ring->rx_pending) ||
+	    (ring->rx_mini_pending) ||
+	    (ring->rx_jumbo_pending))
+		return -EINVAL;
+
+	if (netif_running(dev))
+		qcaspi_netdev_close(dev);
+
+	qca->txr.count = max_t(u32, ring->tx_pending, TX_RING_MIN_LEN);
+	qca->txr.count = min_t(u16, qca->txr.count, TX_RING_MAX_LEN);
+
+	if (netif_running(dev))
+		qcaspi_netdev_open(dev);
+
+	return 0;
 }
 
 static const struct ethtool_ops qcaspi_ethtool_ops = {
@@ -324,6 +348,7 @@ static const struct ethtool_ops qcaspi_ethtool_ops = {
 	.get_regs_len = qcaspi_get_regs_len,
 	.get_regs = qcaspi_get_regs,
 	.get_ringparam = qcaspi_get_ringparam,
+	.set_ringparam = qcaspi_set_ringparam,
 };
 
 void qcaspi_set_ethtool_ops(struct net_device *dev)
