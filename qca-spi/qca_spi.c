@@ -264,6 +264,7 @@ qcaspi_transmit(struct qcaspi *qca)
 		netif_tx_lock_bh(qca->net_dev);
 		dev_kfree_skb(qca->txr.skb[qca->txr.head]);
 		qca->txr.skb[qca->txr.head] = NULL;
+		qca->txr.size -= pkt_len;
 		new_head = qca->txr.head + 1;
 		if (new_head >= qca->txr.count)
 			new_head = 0;
@@ -401,6 +402,7 @@ qcaspi_flush_tx_ring(struct qcaspi *qca)
 	}
 	qca->txr.tail = 0;
 	qca->txr.head = 0;
+	qca->txr.size = 0;
 	netif_tx_unlock_bh(qca->net_dev);
 }
 
@@ -675,6 +677,8 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	netdev_dbg(qca->net_dev, "Tx-ing packet: Size: 0x%08x\n",
 			skb->len);
+
+	qca->txr.size += skb->len + QCASPI_HW_PKT_LEN;
 
 	new_tail = qca->txr.tail + 1;
 	if (new_tail >= qca->txr.count)

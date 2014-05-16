@@ -57,6 +57,7 @@ struct tx_ring {
 	struct sk_buff *skb[TX_RING_MAX_LEN];
 	u16 head;
 	u16 tail;
+	u16 size;
 	u16 count;
 };
 

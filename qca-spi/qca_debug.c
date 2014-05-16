@@ -117,6 +117,9 @@ qcaspi_info_show(struct seq_file *s, void *what)
 		seq_puts(s, "in use");
 
 	seq_puts(s, "\n");
+	
+	seq_printf(s, "TX ring size     : %u\n",
+		qca->txr.size);
 
 	seq_printf(s, "Sync state       : %u (",
 		(unsigned int) qca->sync);
