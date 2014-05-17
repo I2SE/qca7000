@@ -507,9 +507,9 @@ qcaspi_spi_thread(void *data)
 		if (qca->sync != QCASPI_SYNC_READY) {
 			netdev_dbg(qca->net_dev, "sync: not ready %u, turn off carrier and flush\n",
 					(unsigned int) qca->sync);
+			netif_stop_queue(qca->net_dev);
 			netif_carrier_off(qca->net_dev);
 			qcaspi_flush_tx_ring(qca);
-			netif_wake_queue(qca->net_dev);
 			msleep(QCASPI_QCA7K_REBOOT_TIME_MS);
 		}
 
@@ -525,6 +525,7 @@ qcaspi_spi_thread(void *data)
 					continue;
 
 				qca->stats.device_reset++;
+				netif_wake_queue(qca->net_dev);
 				netif_carrier_on(qca->net_dev);
 			}
 
