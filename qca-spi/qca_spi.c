@@ -72,6 +72,7 @@ MODULE_PARM_DESC(qcaspi_pluggable, "Pluggable SPI connection (yes/no).");
 
 #define QCASPI_MTU QCAFRM_ETHMAXMTU
 #define QCASPI_TX_TIMEOUT (1 * HZ)
+#define QCASPI_QCA7K_REBOOT_TIME_MS 1000
 
 void
 start_spi_intr_handling(struct qcaspi *qca, u16 *intr_cause)
@@ -509,7 +510,7 @@ qcaspi_spi_thread(void *data)
 			netif_carrier_off(qca->net_dev);
 			qcaspi_flush_tx_ring(qca);
 			netif_wake_queue(qca->net_dev);
-			msleep(1000);
+			msleep(QCASPI_QCA7K_REBOOT_TIME_MS);
 		}
 
 		if (qca->intr_svc != qca->intr_req) {
