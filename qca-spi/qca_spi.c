@@ -54,7 +54,7 @@
 #define QCASPI_CLK_SPEED_MIN 1000000
 #define QCASPI_CLK_SPEED_MAX 16000000
 #define QCASPI_CLK_SPEED     8000000
-static int qcaspi_clkspeed = QCASPI_CLK_SPEED;
+static int qcaspi_clkspeed;
 module_param(qcaspi_clkspeed, int, 0);
 MODULE_PARM_DESC(qcaspi_clkspeed, "SPI bus clock speed (Hz). Use 1000000-16000000.");
 
@@ -848,6 +848,15 @@ qca_spi_probe(struct spi_device *spi_device)
 	if (of_find_property(spi_device->dev.of_node,
 		"qca,legacy-mode", NULL)) {
 		legacy_mode = 1;
+	}
+
+	if (qcaspi_clkspeed == 0) {
+		if (of_find_property(spi_device->dev.of_node,
+					"spi-max-frequency", NULL)) {
+			qcaspi_clkspeed = spi_device->max_speed_hz;
+		} else {
+			qcaspi_clkspeed = QCASPI_CLK_SPEED;
+		}
 	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
