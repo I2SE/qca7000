@@ -239,6 +239,9 @@ qcaspi_transmit(struct qcaspi *qca)
 	u32 pkt_len;
 	u16 new_head;
 
+	if (qca->txr.skb[qca->txr.head] == NULL)
+		return 0;
+
 	qcaspi_read_register(qca, SPI_REG_WRBUF_SPC_AVA, &available);
 
 	while (qca->txr.skb[qca->txr.head]) {
@@ -556,7 +559,7 @@ qcaspi_spi_thread(void *data)
 			end_spi_intr_handling(qca, intr_cause);
 		}
 
-		if (qca->txr.skb[qca->txr.head])
+		if (qca->sync == QCASPI_SYNC_READY)
 			qcaspi_transmit(qca);
 	}
 	set_current_state(TASK_RUNNING);
