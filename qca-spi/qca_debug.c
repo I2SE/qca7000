@@ -64,43 +64,6 @@ static const char qcaspi_gstrings_stats[][ETH_GSTRING_LEN] = {
 
 #ifdef CONFIG_DEBUG_FS
 
-/*   Dumps the contents of all SPI slave registers.        */
-static int
-qcaspi_regs_dump(struct seq_file *s, void *what)
-{
-	struct reg {
-		char *name;
-		u32 address;
-	};
-
-	static struct reg regs[] = {
-		{ "SPI_REG_BFR_SIZE", SPI_REG_BFR_SIZE },
-		{ "SPI_REG_WRBUF_SPC_AVA", SPI_REG_WRBUF_SPC_AVA },
-		{ "SPI_REG_RDBUF_BYTE_AVA", SPI_REG_RDBUF_BYTE_AVA },
-		{ "SPI_REG_SPI_CONFIG", SPI_REG_SPI_CONFIG },
-		{ "SPI_REG_SPI_STATUS", SPI_REG_SPI_STATUS },
-		{ "SPI_REG_INTR_CAUSE", SPI_REG_INTR_CAUSE },
-		{ "SPI_REG_INTR_ENABLE", SPI_REG_INTR_ENABLE },
-		{ "SPI_REG_RDBUF_WATERMARK", SPI_REG_RDBUF_WATERMARK },
-		{ "SPI_REG_WRBUF_WATERMARK", SPI_REG_WRBUF_WATERMARK },
-		{ "SPI_REG_SIGNATURE", SPI_REG_SIGNATURE },
-		{ "SPI_REG_ACTION_CTRL", SPI_REG_ACTION_CTRL }
-	};
-
-	struct qcaspi *qca = s->private;
-	int i;
-
-	for (i = 0; i < (sizeof(regs) / sizeof(struct reg)); i++) {
-		u16 value;
-
-		qcaspi_read_register(qca, regs[i].address, &value);
-		seq_printf(s, "%-25s(0x%04x): 0x%04x\n",
-			regs[i].name, regs[i].address, value);
-	}
-
-	return 0;
-}
-
 static int
 qcaspi_info_show(struct seq_file *s, void *what)
 {
@@ -163,23 +126,10 @@ qcaspi_info_show(struct seq_file *s, void *what)
 }
 
 static int
-qcaspi_regs_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, qcaspi_regs_dump, inode->i_private);
-}
-
-static int
 qcaspi_info_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, qcaspi_info_show, inode->i_private);
 }
-
-static const struct file_operations qcaspi_regs_ops = {
-	.open = qcaspi_regs_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
-};
 
 static const struct file_operations qcaspi_info_ops = {
 	.open = qcaspi_info_open,
@@ -201,9 +151,6 @@ qcaspi_init_device_debugfs(struct qcaspi *qca)
 			dev_name(&qca->net_dev->dev));
 		return;
 	}
-	debugfs_create_file("regs", S_IFREG | S_IRUGO, device_root, qca,
-			&qcaspi_regs_ops);
-
 	debugfs_create_file("info", S_IFREG | S_IRUGO, device_root, qca,
 			&qcaspi_info_ops);
 }
