@@ -28,6 +28,8 @@
 #include "qca_7k.h"
 #include "qca_spi.h"
 
+#define QCASPI_MAX_REGS 0x20
+
 static const u16 qcaspi_spi_regs[] = {
 	SPI_REG_BFR_SIZE,
 	SPI_REG_WRBUF_SPC_AVA,
@@ -288,7 +290,7 @@ qcaspi_get_sset_count(struct net_device *dev, int sset)
 static int
 qcaspi_get_regs_len(struct net_device *dev)
 {
-	return ARRAY_SIZE(qcaspi_spi_regs) * sizeof(u32);
+	return sizeof(u32) * QCASPI_MAX_REGS;
 }
 
 static void
@@ -299,12 +301,14 @@ qcaspi_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
 	int i;
 
 	regs->version = 1;
+	memset(regs_buff, 0, sizeof(u32) * QCASPI_MAX_REGS);
 
 	for (i = 0; i < ARRAY_SIZE(qcaspi_spi_regs); i++) {
-		u16 value;
+		u16 offset, value;
 
 		qcaspi_read_register(qca, qcaspi_spi_regs[i], &value);
-		regs_buff[i] = value;
+		offset = qcaspi_spi_regs[i] >> 8;
+		regs_buff[offset] = value;
 	}
 }
 
