@@ -273,7 +273,8 @@ qcaspi_transmit(struct qcaspi *qca)
 		if (new_head >= qca->txr.count)
 			new_head = 0;
 		qca->txr.head = new_head;
-		netif_wake_queue(qca->net_dev);
+		if (netif_queue_stopped(qca->net_dev))
+			netif_wake_queue(qca->net_dev);
 		netif_tx_unlock_bh(qca->net_dev);
 	}
 
