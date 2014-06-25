@@ -238,6 +238,7 @@ qcaspi_transmit(struct qcaspi *qca)
 	u16 available = 0;
 	u32 pkt_len;
 	u16 new_head;
+	u16 packets = 0;
 
 	if (qca->txr.skb[qca->txr.head] == NULL)
 		return 0;
@@ -248,7 +249,8 @@ qcaspi_transmit(struct qcaspi *qca)
 		pkt_len = qca->txr.skb[qca->txr.head]->len + QCASPI_HW_PKT_LEN;
 
 		if (available < pkt_len) {
-			qca->stats.write_buf_miss++;
+			if (packets == 0)
+				qca->stats.write_buf_miss++;
 			break;
 		}
 
@@ -257,6 +259,7 @@ qcaspi_transmit(struct qcaspi *qca)
 			return -1;
 		}
 
+		packets++;
 		n_stats->tx_packets++;
 		n_stats->tx_bytes += qca->txr.skb[qca->txr.head]->len;
 		available -= pkt_len;
