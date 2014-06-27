@@ -849,9 +849,6 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EINVAL;
 	}
 
-	dev_info(&spi_device->dev, "SPI device probe (version %s)\n",
-		QCASPI_DRV_VERSION);
-
 	if (of_find_property(spi_device->dev.of_node,
 		"qca,legacy-mode", NULL)) {
 		legacy_mode = 1;
@@ -887,8 +884,8 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EINVAL;
 	}
 
-	dev_info(&spi_device->dev, "Get parameters (clkspeed=%d, burst_len=%d, pluggable=%d)\n",
-		qcaspi_clkspeed, qcaspi_burst_len, qcaspi_pluggable);
+	dev_info(&spi_device->dev, "ver=%s, clkspeed=%d, burst_len=%d, pluggable=%d\n",
+		QCASPI_DRV_VERSION, qcaspi_clkspeed, qcaspi_burst_len, qcaspi_pluggable);
 
 	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
