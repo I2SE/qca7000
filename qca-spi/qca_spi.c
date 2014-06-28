@@ -885,7 +885,10 @@ qca_spi_probe(struct spi_device *spi_device)
 	}
 
 	dev_info(&spi_device->dev, "ver=%s, clkspeed=%d, burst_len=%d, pluggable=%d\n",
-		QCASPI_DRV_VERSION, qcaspi_clkspeed, qcaspi_burst_len, qcaspi_pluggable);
+		QCASPI_DRV_VERSION,
+		qcaspi_clkspeed,
+		qcaspi_burst_len,
+		qcaspi_pluggable);
 
 	spi_device->mode = SPI_MODE_3;
 	spi_device->max_speed_hz = qcaspi_clkspeed;
