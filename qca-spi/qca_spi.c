@@ -388,6 +388,19 @@ qcaspi_receive(struct qcaspi *qca)
 	return 0;
 }
 
+/*   Check that tx ring stores only so much bytes
+ *   that fit into the internal QCA buffer.
+ */
+
+int
+qcaspi_tx_ring_has_space(struct tx_ring *txr)
+{
+	if (txr->skb[txr->tail])
+		return 0;
+
+	return (txr->size + QCAFRM_ETHMAXLEN < QCASPI_HW_BUF_LEN) ? 1 : 0;
+}
+
 /*   Flush the tx ring. This function is only safe to
  *   call from the qcaspi_spi_thread.
  */
@@ -693,13 +706,13 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (new_tail >= qca->txr.count)
 		new_tail = 0;
 
-	if (qca->txr.skb[new_tail]) {
+	qca->txr.skb[qca->txr.tail] = skb;
+	qca->txr.tail = new_tail;
+
+	if (!qcaspi_tx_ring_has_space(&qca->txr)) {
 		netif_stop_queue(qca->net_dev);
 		qca->stats.ring_full++;
 	}
-
-	qca->txr.skb[qca->txr.tail] = skb;
-	qca->txr.tail = new_tail;
 
 	dev->trans_start = jiffies;
 
@@ -718,7 +731,7 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
 			jiffies, jiffies - dev->trans_start);
 	qca->net_dev->stats.tx_errors++;
 	/* wake the queue if there is room */
-	if (qca->txr.skb[qca->txr.tail] == NULL)
+	if (qcaspi_tx_ring_has_space(&qca->txr))
 		netif_wake_queue(dev);
 }
 
