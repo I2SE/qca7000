@@ -874,11 +874,10 @@ qca_spi_probe(struct spi_device *spi_device)
 					    "qca,legacy-mode");
 
 	if (qcaspi_clkspeed == 0) {
-		if (spi_device->max_speed_hz) {
+		if (spi_device->max_speed_hz)
 			qcaspi_clkspeed = spi_device->max_speed_hz;
-		} else {
+		else
 			qcaspi_clkspeed = QCASPI_CLK_SPEED;
-		}
 	}
 
 	if ((qcaspi_clkspeed < QCASPI_CLK_SPEED_MIN) ||
