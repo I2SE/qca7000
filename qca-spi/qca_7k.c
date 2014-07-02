@@ -146,4 +146,3 @@ qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 
 	return ret;
 }
-
