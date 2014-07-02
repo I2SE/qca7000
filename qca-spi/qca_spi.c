@@ -870,10 +870,8 @@ qca_spi_probe(struct spi_device *spi_device)
 		return -EINVAL;
 	}
 
-	if (of_find_property(spi_device->dev.of_node,
-			     "qca,legacy-mode", NULL)) {
-		legacy_mode = 1;
-	}
+	legacy_mode = of_property_read_bool(spi_device->dev.of_node,
+					    "qca,legacy-mode");
 
 	if (qcaspi_clkspeed == 0) {
 		if (spi_device->max_speed_hz) {
