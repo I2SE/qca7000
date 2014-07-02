@@ -16,7 +16,7 @@ Optional properties:
 - spi-max-frequency : Maximum frequency of the SPI bus the chip can operate at.
   Numbers smaller than 1000000 or greater than 16000000 are invalid. Missing
   the property will set the SPI frequency to 8000000 Hertz.
-- local-mac-address: 6 bytes, mac address
+- local-mac-address: 6 bytes, MAC address
 - qca,legacy-mode : Set the SPI data transfer of the QCA7000 to legacy mode.
   In this mode the SPI master must toggle the chip select between each data
   word. In burst mode these gaps aren't necessary, which is faster.
