@@ -335,15 +335,17 @@ qcaspi_receive(struct qcaspi *qca)
 						       count);
 		}
 
-		cp = qca->rx_buffer;
-
 		netdev_dbg(net_dev, "available: %d, byte read: %d\n",
 			   available, bytes_read);
 
-		if (bytes_read)
+		if (bytes_read) {
 			available -= bytes_read;
-		else
+		} else {
 			qca->stats.read_err++;
+			return -1;
+		}
+
+		cp = qca->rx_buffer;
 
 		while ((bytes_read--) && (qca->rx_skb)) {
 			s32 retcode;
