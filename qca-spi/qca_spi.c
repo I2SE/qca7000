@@ -293,7 +293,6 @@ qcaspi_receive(struct qcaspi *qca)
 	struct net_device_stats *n_stats = &net_dev->stats;
 	u16 available = 0;
 	u32 bytes_read;
-	u32 count;
 	u8 *cp;
 
 	/* Allocate rx SKB if we don't have one available. */
@@ -323,7 +322,7 @@ qcaspi_receive(struct qcaspi *qca)
 		qcaspi_tx_cmd(qca, QCA7K_SPI_READ | QCA7K_SPI_EXTERNAL);
 
 	while (available) {
-		count = available;
+		u32 count = available;
 
 		if (count > qca->burst_len)
 			count = qca->burst_len;
