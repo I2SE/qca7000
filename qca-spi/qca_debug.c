@@ -70,7 +70,7 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	struct qcaspi *qca = s->private;
 
 	seq_printf(s, "RX buffer size   : %lu\n",
-		(unsigned long) qca->buffer_size);
+	              (unsigned long)qca->buffer_size);
 
 	seq_puts(s, "TX ring state    : ");
 
@@ -84,10 +84,10 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_puts(s, "\n");
 
 	seq_printf(s, "TX ring size     : %u\n",
-		qca->txr.size);
+	              qca->txr.size);
 
 	seq_printf(s, "Sync state       : %u (",
-		(unsigned int) qca->sync);
+	              (unsigned int)qca->sync);
 	switch (qca->sync) {
 	case QCASPI_SYNC_UNKNOWN:
 		seq_puts(s, "QCASPI_SYNC_UNKNOWN");
@@ -105,22 +105,22 @@ qcaspi_info_show(struct seq_file *s, void *what)
 	seq_puts(s, ")\n");
 
 	seq_printf(s, "IRQ              : %d\n",
-		qca->spi_dev->irq);
+	              qca->spi_dev->irq);
 	seq_printf(s, "INTR REQ         : %u\n",
-		qca->intr_req);
+	              qca->intr_req);
 	seq_printf(s, "INTR SVC         : %u\n",
-		qca->intr_svc);
+	              qca->intr_svc);
 
 	seq_printf(s, "SPI max speed    : %lu\n",
-		(unsigned long) qca->spi_dev->max_speed_hz);
+	              (unsigned long)qca->spi_dev->max_speed_hz);
 	seq_printf(s, "SPI mode         : %x\n",
-		qca->spi_dev->mode);
+	              qca->spi_dev->mode);
 	seq_printf(s, "SPI chip select  : %u\n",
-		(unsigned int) qca->spi_dev->chip_select);
+	              (unsigned int)qca->spi_dev->chip_select);
 	seq_printf(s, "SPI legacy mode  : %u\n",
-		(unsigned int) qca->legacy_mode);
+	              (unsigned int)qca->legacy_mode);
 	seq_printf(s, "SPI burst length : %u\n",
-		(unsigned int) qca->burst_len);
+	              (unsigned int)qca->burst_len);
 
 	return 0;
 }
@@ -152,7 +152,7 @@ qcaspi_init_device_debugfs(struct qcaspi *qca)
 		return;
 	}
 	debugfs_create_file("info", S_IFREG | S_IRUGO, device_root, qca,
-			&qcaspi_info_ops);
+	                    &qcaspi_info_ops);
 }
 
 void
@@ -215,7 +215,7 @@ qcaspi_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
 	switch (stringset) {
 	case ETH_SS_STATS:
 		memcpy(buf, &qcaspi_gstrings_stats,
-			sizeof(qcaspi_gstrings_stats));
+		       sizeof(qcaspi_gstrings_stats));
 		break;
 	default:
 		WARN_ON(1);
