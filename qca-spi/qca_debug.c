@@ -307,5 +307,5 @@ static const struct ethtool_ops qcaspi_ethtool_ops = {
 
 void qcaspi_set_ethtool_ops(struct net_device *dev)
 {
-	SET_ETHTOOL_OPS(dev, &qcaspi_ethtool_ops);
+	dev->ethtool_ops = &qcaspi_ethtool_ops;
 }
