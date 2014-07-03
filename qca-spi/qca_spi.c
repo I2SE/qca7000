@@ -793,21 +793,6 @@ qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 	return 0;
 }
 
-static int
-qcaspi_netdev_set_mac_address(struct net_device *dev, void *addr)
-{
-	struct sockaddr *sa = addr;
-
-	if (netif_running(dev))
-		return -EBUSY;
-
-	if (!is_valid_ether_addr(sa->sa_data))
-		return -EADDRNOTAVAIL;
-
-	memcpy(dev->dev_addr, sa->sa_data, dev->addr_len);
-	return 0;
-}
-
 static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_init = qcaspi_netdev_init,
 	.ndo_uninit = qcaspi_netdev_uninit,
@@ -815,7 +800,7 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_stop = qcaspi_netdev_close,
 	.ndo_start_xmit = qcaspi_netdev_xmit,
 	.ndo_change_mtu = qcaspi_netdev_change_mtu,
-	.ndo_set_mac_address = qcaspi_netdev_set_mac_address,
+	.ndo_set_mac_address = eth_mac_addr,
 	.ndo_tx_timeout = qcaspi_netdev_tx_timeout,
 	.ndo_validate_addr = eth_validate_addr,
 };
