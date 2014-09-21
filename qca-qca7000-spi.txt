@@ -6,13 +6,13 @@ as a child of a SPI master in the device tree.
 Required properties:
 - compatible : Should be "qca,qca7000"
 - reg : Should specify the SPI chip select
-- interrupt-parent : Should specify the pHandle of the source interrupt
 - interrupts : The first cell should specify the index of the source interrupt
   and the second cell should specify the trigger type as rising edge
 - spi-cpha : Must be set
 - spi-cpol: Must be set
 
 Optional properties:
+- interrupt-parent : Specify the pHandle of the source interrupt
 - spi-max-frequency : Maximum frequency of the SPI bus the chip can operate at.
   Numbers smaller than 1000000 or greater than 16000000 are invalid. Missing
   the property will set the SPI frequency to 8000000 Hertz.
@@ -34,11 +34,11 @@ ssp2: ssp@80014000 {
 	pinctrl-0 = <&spi2_pins_a>;
 	status = "okay";
 
-	qca7000@0 {
+	qca7000: ethernet@0 {
 		compatible = "qca,qca7000";
+		reg = <0x0>;
 		interrupt-parent = <&gpio3>;      /* GPIO Bank 3 */
 		interrupts = <25 0x1>;            /* Index: 25, rising edge */
-		reg = <0x0>;
 		spi-cpha;                         /* SPI mode: CPHA=1 */
 		spi-cpol;                         /* SPI mode: CPOL=1 */
 		spi-max-frequency = <8000000>;    /* freq: 8 MHz */
