@@ -245,7 +245,7 @@ qcaspi_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
 {
 	struct qcaspi *qca = netdev_priv(dev);
 	u32 *regs_buff = p;
-	int i;
+	unsigned int i;
 
 	regs->version = 1;
 	memset(regs_buff, 0, sizeof(u32) * QCASPI_MAX_REGS);
