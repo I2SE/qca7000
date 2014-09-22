@@ -26,7 +26,7 @@
 #include <linux/types.h>
 
 #include "qca_7k.h"
-#include "qca_spi.h"
+#include "qca_debug.h"
 
 #define QCASPI_MAX_REGS 0x20
 
