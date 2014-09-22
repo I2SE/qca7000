@@ -74,7 +74,7 @@ MODULE_PARM_DESC(qcaspi_pluggable, "Pluggable SPI connection (yes/no).");
 #define QCASPI_TX_TIMEOUT (1 * HZ)
 #define QCASPI_QCA7K_REBOOT_TIME_MS 1000
 
-void
+static void
 start_spi_intr_handling(struct qcaspi *qca, u16 *intr_cause)
 {
 	*intr_cause = 0;
@@ -84,7 +84,7 @@ start_spi_intr_handling(struct qcaspi *qca, u16 *intr_cause)
 	netdev_dbg(qca->net_dev, "interrupts: 0x%04x\n", *intr_cause);
 }
 
-void
+static void
 end_spi_intr_handling(struct qcaspi *qca, u16 intr_cause)
 {
 	u16 intr_enable = (SPI_INT_CPU_ON |
@@ -97,7 +97,7 @@ end_spi_intr_handling(struct qcaspi *qca, u16 intr_cause)
 	netdev_dbg(qca->net_dev, "acking int: 0x%04x\n", intr_cause);
 }
 
-u32
+static u32
 qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 {
 	u16 cmd;
@@ -124,7 +124,7 @@ qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 	return len;
 }
 
-u32
+static u32
 qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 {
 	struct spi_message *msg = &qca->spi_msg1;
@@ -145,7 +145,7 @@ qcaspi_write_legacy(struct qcaspi *qca, u8 *src, u32 len)
 	return len;
 }
 
-u32
+static u32
 qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message *msg = &qca->spi_msg2;
@@ -172,7 +172,7 @@ qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 	return len;
 }
 
-u32
+static u32
 qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message *msg = &qca->spi_msg1;
@@ -193,7 +193,7 @@ qcaspi_read_legacy(struct qcaspi *qca, u8 *dst, u32 len)
 	return len;
 }
 
-int
+static int
 qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 {
 	u32 count;
@@ -233,7 +233,7 @@ qcaspi_tx_frame(struct qcaspi *qca, struct sk_buff *skb)
 	return 0;
 }
 
-int
+static int
 qcaspi_transmit(struct qcaspi *qca)
 {
 	struct net_device_stats *n_stats = &qca->net_dev->stats;
@@ -286,7 +286,7 @@ qcaspi_transmit(struct qcaspi *qca)
 	return 0;
 }
 
-int
+static int
 qcaspi_receive(struct qcaspi *qca)
 {
 	struct net_device *net_dev = qca->net_dev;
@@ -397,7 +397,7 @@ qcaspi_receive(struct qcaspi *qca)
  *   that fit into the internal QCA buffer.
  */
 
-int
+static int
 qcaspi_tx_ring_has_space(struct tx_ring *txr)
 {
 	if (txr->skb[txr->tail])
@@ -410,7 +410,7 @@ qcaspi_tx_ring_has_space(struct tx_ring *txr)
  *   call from the qcaspi_spi_thread.
  */
 
-void
+static void
 qcaspi_flush_tx_ring(struct qcaspi *qca)
 {
 	int i;
@@ -432,7 +432,7 @@ qcaspi_flush_tx_ring(struct qcaspi *qca)
 	netif_tx_unlock_bh(qca->net_dev);
 }
 
-void
+static void
 qcaspi_qca7k_sync(struct qcaspi *qca, int event)
 {
 	u16 signature = 0;
@@ -657,7 +657,7 @@ qcaspi_netdev_close(struct net_device *dev)
 	return 0;
 }
 
-netdev_tx_t
+static netdev_tx_t
 qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	u32 frame_len;
@@ -729,7 +729,7 @@ qcaspi_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-void
+static void
 qcaspi_netdev_tx_timeout(struct net_device *dev)
 {
 	struct qcaspi *qca = netdev_priv(dev);
@@ -782,7 +782,7 @@ qcaspi_netdev_uninit(struct net_device *dev)
 		dev_kfree_skb(qca->rx_skb);
 }
 
-int
+static int
 qcaspi_netdev_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if ((new_mtu < QCAFRM_ETHMINMTU) || (new_mtu > QCAFRM_ETHMAXMTU))
@@ -805,7 +805,7 @@ static const struct net_device_ops qcaspi_netdev_ops = {
 	.ndo_validate_addr = eth_validate_addr,
 };
 
-void
+static void
 qcaspi_netdev_setup(struct net_device *dev)
 {
 	struct qcaspi *qca = NULL;
