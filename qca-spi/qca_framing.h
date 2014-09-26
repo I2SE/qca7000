@@ -109,7 +109,7 @@ struct qcafrm_handle {
 	u16 len;
 };
 
-u16 qcafrm_create_header(u8 *buf, u16 len);
+u16 qcafrm_create_header(u8 *buf, u16 length);
 
 u16 qcafrm_create_footer(u8 *buf);
 

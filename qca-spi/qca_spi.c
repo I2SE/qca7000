@@ -100,7 +100,7 @@ end_spi_intr_handling(struct qcaspi *qca, u16 intr_cause)
 static u32
 qcaspi_write_burst(struct qcaspi *qca, u8 *src, u32 len)
 {
-	u16 cmd;
+	__be16 cmd;
 	struct spi_message *msg = &qca->spi_msg2;
 	struct spi_transfer *transfer = &qca->spi_xfer2[0];
 	int ret;
@@ -149,7 +149,7 @@ static u32
 qcaspi_read_burst(struct qcaspi *qca, u8 *dst, u32 len)
 {
 	struct spi_message *msg = &qca->spi_msg2;
-	u16 cmd;
+	__be16 cmd;
 	struct spi_transfer *transfer = &qca->spi_xfer2[0];
 	int ret;
 

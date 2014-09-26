@@ -45,8 +45,8 @@ qcaspi_spi_error(struct qcaspi *qca)
 int
 qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result)
 {
-	u16 rx_data;
-	u16 tx_data;
+	__be16 rx_data;
+	__be16 tx_data;
 	struct spi_transfer *transfer;
 	struct spi_message *msg;
 	int ret;
@@ -87,7 +87,7 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result)
 int
 qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 {
-	u16 tx_data[2];
+	__be16 tx_data[2];
 	struct spi_transfer *transfer;
 	struct spi_message *msg;
 	int ret;
@@ -127,13 +127,14 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 int
 qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 {
+	__be16 tx_data;
 	struct spi_message *msg = &qca->spi_msg1;
 	struct spi_transfer *transfer = &qca->spi_xfer1;
 	int ret;
 
-	cmd = cpu_to_be16(cmd);
-	transfer->len = sizeof(cmd);
-	transfer->tx_buf = &cmd;
+	tx_data = cpu_to_be16(cmd);
+	transfer->len = sizeof(tx_data);
+	transfer->tx_buf = &tx_data;
 	transfer->rx_buf = NULL;
 
 	ret = spi_sync(qca->spi_dev, msg);

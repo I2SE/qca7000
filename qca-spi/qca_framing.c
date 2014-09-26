@@ -26,12 +26,14 @@
 #include "qca_framing.h"
 
 u16
-qcafrm_create_header(u8 *buf, u16 len)
+qcafrm_create_header(u8 *buf, u16 length)
 {
+	__le16 len;
+
 	if (!buf)
 		return 0;
 
-	len = cpu_to_le16(len);
+	len = cpu_to_le16(length);
 
 	buf[0] = 0xAA;
 	buf[1] = 0xAA;
