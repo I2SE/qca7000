@@ -4,7 +4,7 @@ EXTRA_CFLAGS += -Werror -Wall
 ifneq ($(KERNELRELEASE),) # kbuild part of makefile
 
 obj-m += qcaspi.o
-qcaspi-objs := qca_spi.o qca_framing.o qca_7k.o qca_debug.o
+qcaspi-objs := qca_spi.o qca_common.o qca_7k.o qca_debug.o
 
 else
 
