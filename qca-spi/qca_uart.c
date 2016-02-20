@@ -117,7 +117,8 @@ qca_tty_wakeup(struct tty_struct *tty)
 		clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 		netdev_dbg(qca->net_dev, "%s: exit early\n", __func__);
 		qca->stats.tx_packets++;
-		netif_wake_queue(qca->net_dev);
+		if (netif_queue_stopped(qca->net_dev))
+			netif_wake_queue(qca->net_dev);
 		return;
 	}
 
