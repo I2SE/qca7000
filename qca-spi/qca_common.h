@@ -26,6 +26,7 @@
 
 #include <linux/if_ether.h>
 #include <linux/if_vlan.h>
+#include <linux/netdevice.h>
 #include <linux/types.h>
 
 /* Frame is currently being received */
@@ -130,5 +131,7 @@ static inline void qcafrm_fsm_init(struct qcafrm_handle *handle)
  */
 
 s32 qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_byte);
+
+int qcacmn_netdev_change_mtu(struct net_device *dev, int new_mtu);
 
 #endif /* _QCA_COMMON_H */

@@ -154,3 +154,14 @@ qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_by
 
 	return ret;
 }
+
+int
+qcacmn_netdev_change_mtu(struct net_device *dev, int new_mtu)
+{
+	if ((new_mtu < QCAFRM_ETHMINMTU) || (new_mtu > QCAFRM_ETHMAXMTU))
+		return -EINVAL;
+
+	dev->mtu = new_mtu;
+
+	return 0;
+}
