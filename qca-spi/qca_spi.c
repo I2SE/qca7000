@@ -916,7 +916,7 @@ qca_spi_probe(struct spi_device *spi)
 	mac = of_get_mac_address(spi->dev.of_node);
 
 	if (mac)
-		memcpy(qca->net_dev->dev_addr, mac, ETH_ALEN);
+		ether_addr_copy(qca->net_dev->dev_addr, mac);
 
 	if (!is_valid_ether_addr(qca->net_dev->dev_addr)) {
 		eth_hw_addr_random(qca->net_dev);
