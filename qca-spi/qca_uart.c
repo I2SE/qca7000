@@ -162,6 +162,7 @@ static struct tty_ldisc_ops qca_ldisc = {
 	.name	= "qca",
 	.open	= qca_tty_open,
 	.close	= qca_tty_close,
+	.ioctl	= n_tty_ioctl_helper,
 	.receive_buf = qca_tty_receive,
 	.write_wakeup = qca_tty_wakeup,
 };
