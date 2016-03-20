@@ -265,6 +265,8 @@ qcaspi_transmit(struct qcaspi *qca)
 		n_stats->tx_bytes += qca->txr.skb[qca->txr.head]->len;
 		available -= pkt_len;
 
+		qcaled_event(qca->net_dev, QCALED_EVENT_TX);
+
 		/* remove the skb from the queue */
 		/* XXX After inconsistent lock states netif_tx_lock()
 		 * has been replaced by netif_tx_lock_bh() and so on.
@@ -377,6 +379,7 @@ qcaspi_receive(struct qcaspi *qca)
 					qca->rx_skb, qca->rx_skb->dev);
 				qca->rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
 				netif_rx_ni(qca->rx_skb);
+				qcaled_event(qca->net_dev, QCALED_EVENT_RX);
 				qca->rx_skb = netdev_alloc_skb(net_dev,
 					net_dev->mtu + VLAN_ETH_HLEN);
 				if (!qca->rx_skb) {
@@ -533,6 +536,7 @@ qcaspi_spi_thread(void *data)
 				   (unsigned int)qca->sync);
 			netif_stop_queue(qca->net_dev);
 			netif_carrier_off(qca->net_dev);
+			qcaled_event(qca->net_dev, QCALED_EVENT_CLOSE);
 			qcaspi_flush_tx_ring(qca);
 			msleep(QCASPI_QCA7K_REBOOT_TIME_MS);
 		}
@@ -551,6 +555,7 @@ qcaspi_spi_thread(void *data)
 				qca->stats.device_reset++;
 				netif_wake_queue(qca->net_dev);
 				netif_carrier_on(qca->net_dev);
+				qcaled_event(qca->net_dev, QCALED_EVENT_OPEN);
 			}
 
 			if (intr_cause & SPI_INT_RDBUF_ERR) {
@@ -935,6 +940,7 @@ qca_spi_probe(struct spi_device *spi)
 	}
 
 	qcaspi_init_device_debugfs(qca);
+	devm_qcaled_init(qcaspi_devs);
 
 	return 0;
 }

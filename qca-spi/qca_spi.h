@@ -33,6 +33,7 @@
 #include <linux/types.h>
 
 #include "qca_common.h"
+#include "qca_led.h"
 
 #define QCASPI_DRV_VERSION "0.2.7-i"
 #define QCASPI_DRV_NAME    "qcaspi"
@@ -106,6 +107,15 @@ struct qcaspi {
 	u32 clkspeed;
 	u8 legacy_mode;
 	u16 burst_len;
+
+#ifdef CONFIG_QCA7000_LEDS
+	struct led_trigger *tx_led_trig;
+	char tx_led_trig_name[QCALED_NAME_SZ];
+	struct led_trigger *rx_led_trig;
+	char rx_led_trig_name[QCALED_NAME_SZ];
+	struct led_trigger *rxtx_led_trig;
+	char rxtx_led_trig_name[QCALED_NAME_SZ];
+#endif
 };
 
 int qcaspi_netdev_open(struct net_device *dev);
