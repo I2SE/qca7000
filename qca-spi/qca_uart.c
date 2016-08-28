@@ -244,7 +244,7 @@ qcauart_netdev_xmit(struct sk_buff *skb, struct net_device *dev)
 	skb_pull(skb, written);
 
 	qca->tx_skb = skb;
-	dev->trans_start = jiffies;
+	netif_trans_update(dev);
 
 	return NETDEV_TX_OK;
 }
