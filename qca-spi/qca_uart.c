@@ -255,7 +255,7 @@ qcauart_netdev_tx_timeout(struct net_device *dev)
 	struct qcauart *qca = netdev_priv(dev);
 
 	netdev_info(qca->net_dev, "Transmit timeout at %ld, latency %ld\n",
-		    jiffies, jiffies - dev->trans_start);
+		    jiffies, jiffies - dev_trans_start(dev));
 	qca->stats.tx_errors++;
 	qca->stats.tx_dropped++;
 
