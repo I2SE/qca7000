@@ -32,10 +32,6 @@
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/netdevice.h>
-#include <linux/of.h>
-#include <linux/of_device.h>
-#include <linux/of_net.h>
-#include <linux/platform_device.h>
 #include <linux/sched.h>
 #include <linux/skbuff.h>
 #include <linux/tty.h>
@@ -44,10 +40,12 @@
 #include "qca_common.h"
 #include "qca_uart.h"
 
-#define QCAUART_DRV_VERSION "0.0.5"
+#define QCAUART_DRV_VERSION "0.0.6"
 #define QCAUART_DRV_NAME "qcauart"
 #define QCAUART_MTU QCAFRM_ETHMAXMTU
 #define QCAUART_TX_TIMEOUT (1 * HZ)
+
+static struct net_device *qcauart_dev;
 
 void
 qca_tty_receive(struct tty_struct *tty, const unsigned char *cp, char *fp, int count)
@@ -310,110 +308,77 @@ qcauart_netdev_setup(struct net_device *dev)
 {
 	struct qcauart *qca = NULL;
 
-	dev->netdev_ops = &qcauart_netdev_ops
+	dev->netdev_ops = &qcauart_netdev_ops;
 	dev->watchdog_timeo = QCAUART_TX_TIMEOUT;
-	dev->flags = IFF_MULTICAST;
+	dev->priv_flags &= ~IFF_TX_SKB_SHARING;
 	dev->tx_queue_len = 100;
 
 	qca = netdev_priv(dev);
 	memset(qca, 0, sizeof(struct qcauart));
 }
 
-static const struct of_device_id qca_uart_of_match[] = {
-	{ .compatible = "qca,qca7000-uart" },
-	{ /* sentinel */ }
-};
-MODULE_DEVICE_TABLE(of, qca_uart_of_match);
-
-static int
-qca_uart_probe(struct platform_device *pdev)
+static int __init qca_uart_mod_init(void)
 {
 	struct qcauart *qca = NULL;
-	struct net_device *qcauart_devs = NULL;
-	const char *mac;
 	int ret;
 
-	if (!pdev->dev.of_node) {
-		dev_err(&pdev->dev, "Missing device tree\n");
-		return -EINVAL;
-	}
-
-	ret = tty_register_ldisc(N_QCA, &qca_ldisc);
+	ret = tty_register_ldisc(N_QCA7K, &qca_ldisc);
 	if (ret) {
-		dev_err(&pdev->dev, "Can't register line discipline (ret = %d)\n",
-			ret);
+		pr_err("qca_uart: Can't register line discipline (ret = %d)\n",
+		       ret);
 		return ret;
 	}
 
-	dev_info(&pdev->dev, "ver=%s\n", QCAUART_DRV_VERSION);
+	pr_info("qca_uart: ver=%s\n", QCAUART_DRV_VERSION);
 
-	qcauart_devs = alloc_etherdev(sizeof(struct qcauart));
-	if (!qcauart_devs)
+	qcauart_dev = alloc_etherdev(sizeof(struct qcauart));
+	if (!qcauart_dev)
 		return -ENOMEM;
 
-	qcauart_netdev_setup(qcauart_devs);
+	qcauart_netdev_setup(qcauart_dev);
 
-	qca = netdev_priv(qcauart_devs);
+	qca = netdev_priv(qcauart_dev);
 	if (!qca) {
-		dev_err(&pdev->dev, "Fail to retrieve private structure\n");
-		free_netdev(qcauart_devs);
+		pr_err("qca_uart: Fail to retrieve private structure\n");
+		free_netdev(qcauart_dev);
 		return -ENOMEM;
 	}
-	SET_NETDEV_DEV(qcauart_devs, &pdev->dev);
-	qca->net_dev = qcauart_devs;
+	qca->net_dev = qcauart_dev;
 
-	mac = of_get_mac_address(pdev->dev.of_node);
-
-	if (mac)
-		ether_addr_copy(qca->net_dev->dev_addr, mac);
-
-	if (!is_valid_ether_addr(qca->net_dev->dev_addr)) {
-		eth_hw_addr_random(qca->net_dev);
-		dev_info(&pdev->dev, "Using random MAC address: %pM\n",
-			 qca->net_dev->dev_addr);
-	}
+	eth_hw_addr_random(qca->net_dev);
+	pr_info("qca_uart: Using random MAC address: %pM\n",
+		qca->net_dev->dev_addr);
 
 	netif_carrier_off(qca->net_dev);
 
-	if (register_netdev(qcauart_devs)) {
-		dev_err(&pdev->dev, "Unable to register net device %s\n",
-			qcauart_devs->name);
-		free_netdev(qcauart_devs);
+	if (register_netdev(qcauart_dev)) {
+		pr_err("qca_uart: Unable to register net device %s\n",
+		       qcauart_dev->name);
+		free_netdev(qcauart_dev);
 		return -EFAULT;
 	}
 
 	return 0;
 }
 
-static int
-qca_uart_remove(struct platform_device *pdev)
+static void __exit qca_uart_mod_exit(void)
 {
-	struct qcauart *qca = platform_get_drvdata(pdev);
 	int ret;
 
-	unregister_netdev(qca->net_dev);
-	ret = tty_unregister_ldisc(N_QCA);
+	unregister_netdev(qcauart_dev);
+	ret = tty_unregister_ldisc(N_QCA7K);
 	if (ret)
-		dev_err(&pdev->dev, "Can't unregister line discipline\n");
+		pr_err("qca_uart: Can't unregister line discipline\n");
 
-	free_netdev(qca->net_dev);
-
-	return 0;
+	free_netdev(qcauart_dev);
 }
 
-static struct platform_driver qca_uart_driver = {
-	.driver	= {
-		.name	= QCAUART_DRV_NAME,
-		.of_match_table = qca_uart_of_match,
-	},
-	.probe = qca_uart_probe,
-	.remove = qca_uart_remove,
-};
-module_platform_driver(qca_uart_driver);
+module_init(qca_uart_mod_init);
+module_exit(qca_uart_mod_exit);
 
 MODULE_DESCRIPTION("Qualcomm Atheros UART Driver");
 MODULE_AUTHOR("Qualcomm Atheros Communications");
 MODULE_AUTHOR("Stefan Wahren <stefan.wahren@i2se.com>");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_VERSION(QCAUART_DRV_VERSION);
-MODULE_ALIAS_LDISC(N_QCA);
+MODULE_ALIAS_LDISC(N_QCA7K);
